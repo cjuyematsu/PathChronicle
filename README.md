@@ -18,18 +18,11 @@ POSTGRES_DB=mydatabase
 DB_HOST=localhost
 DB_PORT=5432
 
-# Prisma Database URL
-DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
-
 # Environment
 NODE_ENV=development
 ```
 
 Run `docker-compose up` to start the database
-
-Cd into backend directory and run `npm run db:studio` or `npx prisma studio` to see the db (if needed)
-
-After making changes to the database schema (in schema.prisma file) run `npm run db:migrate` or `prisma migrate dev --name migration_name`
 
 Run `npm run dev` to start the backend
 

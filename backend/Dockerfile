@@ -1,5 +1,5 @@
-# Uses node version 22 as our base image
-FROM node:22
+# Uses node version 24-alpine as our base image
+FROM node:24-alpine
 
 # Goes to src directory
 WORKDIR /app

@@ -27,9 +27,9 @@ NODE_ENV=development
 
 Run `docker-compose up` to start the database
 
-Cd into backend directory and run `npx prisma studio` to see the db (if needed)
+Cd into backend directory and run `npm run db:studio` or `npx prisma studio` to see the db (if needed)
 
-After making changes to the database schema (in schema.prisma file) run `prisma migrate dev --name migration_name`
+After making changes to the database schema (in schema.prisma file) run `npm run db:migrate` or `prisma migrate dev --name migration_name`
 
 Run `npm run dev` to start the backend
 

@@ -1,6 +1,7 @@
 services:
     # PostgreSQL database service
     db:
+        container_name: db
         image: postgres:17-alpine
         restart: unless-stopped # Always restart unless stopped manually
         ports:
@@ -11,6 +12,19 @@ services:
             POSTGRES_DB: ${POSTGRES_DB}
         volumes:
             - postgres-data:/var/lib/postgresql/data # Makes the database persistent
+
+    backend:
+        container_name: backend
+        image: backend
+        build: 
+            context: ./backend
+            dockerfile: Dockerfile
+        ports:
+            - 5000:5000
+        environment: 
+            - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+        depends_on:
+            - db # Make sure database is started before starting backend
 
 volumes:
     postgres-data:

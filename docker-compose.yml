@@ -2,8 +2,8 @@ services:
     # PostgreSQL database service
     db:
         container_name: db
-        image: postgis/postgis # Uses base image of postgis 
-        platform: linux/amd64
+        image: postgis/postgis # Uses image of Postgres with Postgis extension
+        platform: linux/amd64 # Ensures compatibility on Mac (emulates X86_64)
         restart: unless-stopped # Always restart unless stopped manually
         environment:
             POSTGRES_USER: ${POSTGRES_USER}

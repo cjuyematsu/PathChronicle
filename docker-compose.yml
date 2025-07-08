@@ -2,14 +2,32 @@ services:
     # PostgreSQL database service
     db:
         container_name: db
-        image: postgres:17-alpine
-        restart: unless-stopped # Always restart unless stopped manually
+        image: postgis/postgis:17-3.4-alpine # Uses image of Postgres with Postgis extension
+        platform: linux/amd64
+        restart: unless-stopped # Always restart unless stopped manually'
+        ports:
+            - 5432:5432
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: ${POSTGRES_DB}
         volumes:
-            - postgres-data:/var/lib/postgresql/data # Makes the database persistent
+            - postgres-data:/var/lib/postgresql/data
+    
+    pgadmin:
+        container_name: pgadmin
+        image: dpage/pgadmin4
+        restart: unless-stopped
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${POSTGRES_USER}@gmail.com
+            PGADMIN_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
+        ports:
+            - 8080:80 # pgAdmin will be accessible at http://localhost:8080
+        depends_on:
+            - db
+        volumes:
+            - pgadmin-data:/var/lib/pgadmin
+
 
     backend:
         container_name: backend
@@ -27,3 +45,4 @@ services:
 
 volumes:
     postgres-data:
+    pgadmin-data:

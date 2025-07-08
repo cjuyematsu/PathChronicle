@@ -4,10 +4,10 @@ import db from '../../lib/db';
 const router = express.Router();
 router.post('/savedata/:id', async (req, res) => {
     const userId = req.params.id;
-    const data = req.body;
+    const { origin, destination } = req.body;
 
     try {
-        await db.query('INSERT INTO users (userId, data) VALUES ($1, $2)', [userId,data]);
+        await db.query('INSERT INTO tripes (userId, origin, destination) VALUES ($1, $2, $3)', [userId, origin, destination]);
         res.status(201).send('trip data inserted successfully')
     }
     catch (error) {

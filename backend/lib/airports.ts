@@ -1,15 +1,5 @@
 import db from "./db";
-
-interface AirportData {
-    name: string;
-    city: string;
-    country: string;
-    airport_code: string;
-    location_type: string;
-    latitude: number;
-    longitude: number;
-    timezone: string;
-}
+import { AirportData } from "../types";
 
 async function downloadAirportsData(): Promise<string> {
     try {

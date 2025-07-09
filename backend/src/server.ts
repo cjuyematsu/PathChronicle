@@ -2,10 +2,26 @@ import express from "express";
 import authRoutes from "./routes/AuthRoutes";
 import { initializeDatabase } from "../lib/initialize_db";
 import tripRoutes from "./routes/Trips";
+import locationRoutes from "./routes/LocationRoutes";
 import getAirports from "../lib/airports";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// CORS Middleware
+app.use(
+    cors({
+        origin: [
+            "http://localhost:3000",
+            "https://localhost:3001",
+            // Add deployed frontend URL when available
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 
@@ -17,6 +33,7 @@ async function startServer() {
 
         // Mount routes
         //app.use("/api/auth", authRoutes);
+        app.use("/api/locations", locationRoutes);
         app.use("/api/trips", tripRoutes);
 
         app.listen(PORT, () => {

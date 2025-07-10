@@ -1,22 +1,25 @@
 # Uses node version 24-alpine as our base image
 FROM node:24-alpine
 
-# Goes to src directory
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies 
+# Copy package.json for backend
+COPY backend/package*.json ./backend/
+WORKDIR /app/backend
 RUN npm install
 
-# Copy rest of src into container
-COPY . .
+# Go back to root and copy everything
+WORKDIR /app
+COPY . ./
+
+# Set working directory to backend for running
+WORKDIR /app/backend
 
 # Set port environment variable 
 ENV PORT=5000
 
-# Expose the port so computer can access it 
+# Expose the port
 EXPOSE 5000
 
 # Run the app

@@ -18,8 +18,9 @@ services:
         container_name: backend
         image: backend
         build:
-            context: ./backend
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: backend/Dockerfile
+        working_dir: /app/backend
         ports:
             - 5000:5000
         environment:

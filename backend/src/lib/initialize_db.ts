@@ -1,3 +1,5 @@
+// Do not use this file (deprecated, use sql/schema.sql instead)
+
 import db from "./db";
 
 export async function initializeDatabase() {

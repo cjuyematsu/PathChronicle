@@ -1,9 +1,8 @@
 import express from "express";
-import authRoutes from "./routes/AuthRoutes";
-import { initializeDatabase } from "./lib/initialize_db";
+//import authRoutes from "./routes/AuthRoutes";
 import tripRoutes from "./routes/Trips";
 import locationRoutes from "./routes/LocationRoutes";
-import getAirports from "./lib/airports";
+//import getAirports from "./lib/airports";
 import cors from "cors";
 
 const app = express();
@@ -27,8 +26,6 @@ app.use(express.json());
 
 async function startServer() {
     try {
-        //await initializeDatabase(); // Initialize the database (schema, tables, etc.)
-
         //await getAirports(); // Import airport data (NOTE: This is a one-time operation, so you might want to comment this out after the first run)
 
         // Mount routes

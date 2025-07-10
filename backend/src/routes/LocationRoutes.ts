@@ -1,33 +1,28 @@
 import express from "express";
 import db from "../lib/db";
 import loadSQL from "../lib/loadSQL";
+import {
+    LocationSearchRow,
+    LocationType,
+    LocationSearchRowWithDisplay,
+} from "@shared/types/location";
 
 const router = express.Router();
-
-// Interface for the frontend Location type
-interface Location {
-    id: string;
-    name: string;
-    code?: string;
-    city: string;
-    country: string;
-    type: "airport" | "train_station" | "city" | "bus_station" | "port";
-    display: string;
-}
 
 // Search locations with autocomplete
 router.get("/search", async (req, res) => {
     try {
-        const { q, limit = 5, type } = req.query;
+        const searchTerm = req.query.searchTerm as string;
+        const limit = req.query.searchLimit
+            ? parseInt(req.query.searchLimit as string)
+            : 5;
+        const type = req.query.type as LocationType | undefined;
 
         // Validate query parameter (search only if longer than 2 characters)
-        if (typeof q !== "string") {
-            return res.status(400).json({ error: "Invalid query parameter" });
-        }
-        if (!q) {
+        if (!searchTerm) {
             return res.json([]);
         }
-        if (q.length < 2) {
+        if (searchTerm.length < 2) {
             return res.json([]);
         }
 
@@ -41,9 +36,9 @@ router.get("/search", async (req, res) => {
         }
 
         // Create parameters for the query
-        const params = [q, parseInt(limit.toString())];
+        const params = [searchTerm, limit];
         if (type) {
-            params.push(type as string);
+            params.push(type);
         }
 
         // Execute the query
@@ -51,15 +46,17 @@ router.get("/search", async (req, res) => {
 
         // TODO: Format the response to match frontend Location interface
         // TODO: Find a better way to format the display text
-        const locations: Location[] = result.rows.map((row) => ({
-            id: row.id,
-            name: row.name,
-            city: row.city,
-            country: row.country,
-            code: row.airport_code || row.station_code,
-            type: row.location_type as Location["type"],
-            display: formatDisplayText(row),
-        }));
+        const locations: LocationSearchRowWithDisplay[] = result.rows.map(
+            (row: LocationSearchRow) => ({
+                id: row.id,
+                name: row.name,
+                city: row.city,
+                country: row.country,
+                code: row.airport_code || row.station_code,
+                location_type: row.location_type,
+                display: formatDisplayText(row),
+            })
+        );
 
         res.json(locations);
     } catch (error) {
@@ -70,7 +67,7 @@ router.get("/search", async (req, res) => {
 
 //TODO:  Helper function to format display text
 //TODO: Find a better way to format the display text
-function formatDisplayText(location: any): string {
+function formatDisplayText(location: LocationSearchRow) {
     const { name, city, country, airport_code, station_code, location_type } =
         location;
 

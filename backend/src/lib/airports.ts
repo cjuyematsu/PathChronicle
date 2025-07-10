@@ -1,3 +1,7 @@
+// This file should only be run once to import airport data into the database.
+// It fetches airport data from an external source, parses it, and inserts it into the database.
+// After running this file, you can comment it out to avoid re-importing the data.
+
 import db from "./db";
 import { AirportData } from "../../types";
 

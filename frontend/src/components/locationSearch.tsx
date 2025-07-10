@@ -1,54 +1,52 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-// import {
-//     Search,
-//     MapPin,
-//     Plane,
-//     Train,
-//     Building,
-//     Bus,
-//     Ship,
-// } from "lucide-react";
+import {
+    LocationSearchRow,
+    LocationSearchRowWithDisplay,
+    LocationType,
+} from "@shared/types/location";
+import {
+    Search,
+    MapPin,
+    Plane,
+    Train,
+    Building,
+    Bus,
+    Ship,
+} from "lucide-react";
 
 // Define the location type
-interface Location {
-    id: string;
-    name: string;
-    code?: string;
-    city: string;
-    country: string;
-    type: "airport" | "train_station" | "city" | "bus_station" | "port";
-    display: string;
-}
+// interface Location {
+//     id: string;
+//     name: string;
+//     code?: string;
+//     city: string;
+//     country: string;
+//     type: "airport" | "train_station" | "city" | "bus_station" | "port";
+//     display: string;
+// }
 
 // Define the props interface
 interface LocationSearchProps {
-    onLocationSelect?: (location: Location) => void;
+    onLocationSelect?: (location: LocationSearchRowWithDisplay) => void;
     placeholder?: string;
     initialValue?: string;
-    locationTypes?:
-        | "all"
-        | "airport"
-        | "train_station"
-        | "city"
-        | "bus_station"
-        | "port";
 }
 
 const LocationSearch = ({
     onLocationSelect,
     placeholder = "Search cities, airports, or stations...",
     initialValue = "",
-    locationTypes = "all",
 }: LocationSearchProps) => {
     const [query, setQuery] = useState<string>(initialValue);
-    const [suggestions, setSuggestions] = useState<Location[]>([]);
+    const [suggestions, setSuggestions] = useState<
+        LocationSearchRowWithDisplay[]
+    >([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-        null
-    );
+    const [selectedLocation, setSelectedLocation] =
+        useState<LocationSearchRowWithDisplay | null>(null);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -64,9 +62,8 @@ const LocationSearch = ({
 
         try {
             const params = new URLSearchParams({
-                q: searchQuery,
-                limit: "10",
-                ...(locationTypes !== "all" && { type: locationTypes }),
+                searchTerm: searchQuery,
+                limit: "5",
             });
 
             const response = await fetch(
@@ -77,8 +74,8 @@ const LocationSearch = ({
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data: Location[] = await response.json();
-            console.log("Search results:", data);
+            const data: LocationSearchRowWithDisplay[] = await response.json();
+            //TODO: console.log("Search results:", data);
 
             setSuggestions(data);
             setShowSuggestions(true);
@@ -86,6 +83,7 @@ const LocationSearch = ({
         } catch (error) {
             console.error("Search error:", error);
             setSuggestions([]);
+            setShowSuggestions(false);
             setIsLoading(false);
         }
     };
@@ -112,12 +110,10 @@ const LocationSearch = ({
                 clearTimeout(debounceRef.current);
             }
         };
-    }, [query, locationTypes]);
+    }, [query]);
 
     // Handle input change
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ): void => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setQuery(value);
         setSelectedIndex(-1);
@@ -125,9 +121,9 @@ const LocationSearch = ({
     };
 
     // Handle suggestion selection
-    const handleSuggestionClick = (location: Location): void => {
-        setQuery(location.display);
-        setSelectedLocation(location);
+    const handleSuggestionClick = (location: LocationSearchRowWithDisplay) => {
+        setQuery(location.display); //TODO: Use name or display based on your preference
+        setSelectedLocation(location); // TODO: consider removing
         setShowSuggestions(false);
         setSelectedIndex(-1);
         if (onLocationSelect) {
@@ -136,7 +132,7 @@ const LocationSearch = ({
     };
 
     // Handle keyboard navigation
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!showSuggestions || suggestions.length === 0) return;
 
         switch (e.key) {
@@ -163,27 +159,27 @@ const LocationSearch = ({
         }
     };
 
-    // // Get icon for location type
-    // const getLocationIcon = (type: Location["type"]): JSX.Element => {
-    //     switch (type) {
-    //         case "airport":
-    //             return <Plane className="w-4 h-4 text-blue-500" />;
-    //         case "train_station":
-    //             return <Train className="w-4 h-4 text-green-500" />;
-    //         case "city":
-    //             return <Building className="w-4 h-4 text-gray-500" />;
-    //         case "bus_station":
-    //             return <Bus className="w-4 h-4 text-orange-500" />;
-    //         case "port":
-    //             return <Ship className="w-4 h-4 text-purple-500" />;
-    //         default:
-    //             return <MapPin className="w-4 h-4 text-gray-500" />;
-    //     }
-    // };
+    // Get icon for location type
+    const getLocationIcon = (type: LocationType) => {
+        switch (type) {
+            case "airport":
+                return <Plane className="w-4 h-4 text-blue-500" />;
+            case "train_station":
+                return <Train className="w-4 h-4 text-green-500" />;
+            case "city":
+                return <Building className="w-4 h-4 text-gray-500" />;
+            case "bus_station":
+                return <Bus className="w-4 h-4 text-orange-500" />;
+            case "port":
+                return <Ship className="w-4 h-4 text-purple-500" />;
+            default:
+                return <MapPin className="w-4 h-4 text-gray-500" />;
+        }
+    };
 
     // Close suggestions when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent): void => {
+        const handleClickOutside = (event: MouseEvent) => {
             if (
                 suggestionsRef.current &&
                 !suggestionsRef.current.contains(event.target as Node)
@@ -202,7 +198,7 @@ const LocationSearch = ({
         <div className="relative w-full">
             {/* Search Input */}
             <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                     ref={inputRef}
                     type="text"
@@ -236,22 +232,25 @@ const LocationSearch = ({
                                 index === selectedIndex ? "bg-blue-50" : ""
                             }`}
                         >
-                            {/* {getLocationIcon(location.type)} */}
+                            {getLocationIcon(location.location_type)}
                             <div className="flex-1 min-w-0">
                                 <div className="font-medium text-gray-900 truncate">
                                     {location.name}
-                                    {location.code && (
-                                        <span className="ml-2 text-sm text-gray-500 font-normal">
-                                            ({location.code})
-                                        </span>
-                                    )}
+                                    {(location.location_type === "airport" ||
+                                        location.location_type ===
+                                            "train_station") &&
+                                        location.code && (
+                                            <span className="ml-2 text-sm text-gray-500 font-normal">
+                                                ({location.code})
+                                            </span>
+                                        )}
                                 </div>
                                 <div className="text-sm text-gray-500 truncate">
                                     {location.city}, {location.country}
                                 </div>
                             </div>
                             <div className="text-xs text-gray-400 capitalize">
-                                {location.type.replace("_", " ")}
+                                {location.location_type.replace("_", " ")}
                             </div>
                         </div>
                     ))}

@@ -16,3 +16,15 @@ export interface TripFormData {
     operator: string;
     notes: string;
 }
+
+// Form errors interface
+export interface FormErrors {
+    [key: string]: string | null;
+}
+
+// Trip type option interface
+export interface TripTypeOption {
+    value: "flight" | "train" | "bus" | "car" | "ferry" | "other";
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+}

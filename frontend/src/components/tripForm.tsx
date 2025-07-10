@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { LocationSearchRowWithDisplay } from "@shared/types/location";
-import { TripFormData } from "../types";
+import { TripFormData, TripTypeOption } from "../types";
 import LocationSearch from "./locationSearch";
+import { FormErrors } from "../types";
 
 import {
     Calendar,
@@ -17,40 +18,6 @@ import {
     AlertCircle,
     CheckCircle,
 } from "lucide-react";
-
-// Trip form data interface
-// interface TripFormData {
-//     name: string;
-//     trip_type: "flight" | "train" | "bus" | "car" | "ferry" | "other";
-//     origin_location: LocationSearchRowWithDisplay | null;
-//     destination_location: LocationSearchRowWithDisplay | null;
-//     departure_date: string;
-//     arrival_date: string;
-//     departure_time: string;
-//     arrival_time: string;
-//     flight_number: string;
-//     train_number: string;
-//     airline: string;
-//     operator: string;
-//     notes: string;
-// }
-
-// Form errors interface
-// EXAMPLE:
-// const errors: FormErrors = {
-//     email: "Invalid email address",
-//     password: null,
-// };
-interface FormErrors {
-    [key: string]: string | null;
-}
-
-// Trip type option interface
-interface TripTypeOption {
-    value: "flight" | "train" | "bus" | "car" | "ferry" | "other";
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-}
 
 // Trip form component
 const TripForm = () => {
@@ -86,6 +53,8 @@ const TripForm = () => {
         { value: "other", label: "Other", icon: MapPin },
     ];
 
+    // Handle input changes for text fields
+    // This function updates the form data state and clears any existing error for that field
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -104,6 +73,29 @@ const TripForm = () => {
         }
     };
 
+    // Handle input changes for the search fields (Search for locations)
+    const handleInputChangeSearch = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const { name } = e.target;
+
+        // Reset the location when user starts typing
+        setFormData((prev) => ({
+            ...prev,
+            [name]: null,
+        }));
+
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors((prev) => ({
+                ...prev,
+                [name]: null,
+            }));
+        }
+    };
+
+    // Handle location selection from the LocationSearch component
+    // This function updates the form data state with the selected location and clears any existing error for
     const handleLocationSelect = (
         location: LocationSearchRowWithDisplay,
         type: "origin_location" | "destination_location"
@@ -128,10 +120,6 @@ const TripForm = () => {
     const validateForm = () => {
         const newErrors: FormErrors = {};
 
-        // if (!formData.name.trim()) {
-        //     newErrors.name = "Trip name is required";
-        // }
-
         if (!formData.origin_location) {
             newErrors.origin_location = "Origin location is required";
         }
@@ -149,13 +137,11 @@ const TripForm = () => {
                 "Origin and destination can't match";
         }
 
-        // if (!formData.departure_date) {
-        //     newErrors.departure_date = "Departure date is required";
-        // }
         // TODO: Ensure departure date is before arrival date
 
         // TODO: Ensure departure time is before arrival time
 
+        // TODO: Validate destination and origin locations (make sure they are not the same + they exist in the database)
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -176,7 +162,6 @@ const TripForm = () => {
             // TODO: Calculate duration based on departure and arrival times (if provided)
             // TODO: Create tripData type
             // TODO: Create API endpoint to handle trip creation
-            // TODO: Validate destination and origin locations (make sure they are not the same + they exist in the database)
             const tripData = {
                 name: formData.name,
                 trip_type: formData.trip_type,
@@ -387,8 +372,11 @@ const TripForm = () => {
                 {/* Origin and Destination */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="relative pb-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Origin Location *
+                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                            <div className="pr-2">Origin Location * </div>
+                            {formData.origin_location && (
+                                <CheckCircle className="w-4 h-4" />
+                            )}
                         </label>
                         <LocationSearch
                             onLocationSelect={(location) =>
@@ -399,23 +387,10 @@ const TripForm = () => {
                             }
                             placeholder="e.g., JFK"
                             initialValue={formData.origin_location?.name || ""}
-                            onInputChange={handleInputChange}
+                            onInputChange={handleInputChangeSearch}
                             name="origin_location"
                         />
-                        {/* {formData.origin_location && (
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-center gap-2 text-green-800">
-                                    <CheckCircle className="w-4 h-4" />
-                                    <span className="font-medium">
-                                        {formData.origin_location.name}
-                                    </span>
-                                </div>
-                                <div className="text-sm text-green-600">
-                                    {formData.origin_location.city},{" "}
-                                    {formData.origin_location.country}
-                                </div>
-                            </div>
-                        )} */}
+                        {/* Error */}
                         {errors.origin_location && (
                             <p className="absolute left-0 top-full text-sm text-red-600 flex items-start gap-1">
                                 <AlertCircle className="w-4 h-4" />
@@ -425,8 +400,11 @@ const TripForm = () => {
                     </div>
 
                     <div className="relative pb-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Destination Location *
+                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                            <div className="pr-2">Destination Location * </div>
+                            {formData.destination_location && (
+                                <CheckCircle className="w-4 h-4" />
+                            )}
                         </label>
                         <LocationSearch
                             onLocationSelect={(location) =>
@@ -439,26 +417,13 @@ const TripForm = () => {
                             initialValue={
                                 formData.destination_location?.name || ""
                             }
-                            onInputChange={handleInputChange}
+                            onInputChange={handleInputChangeSearch}
                             name="destination_location"
                         />
-                        {/* {formData.destination_location && (
-                            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-center gap-2 text-green-800">
-                                    <CheckCircle className="w-4 h-4" />
-                                    <span className="font-medium">
-                                        {formData.destination_location.name}
-                                    </span>
-                                </div>
-                                <div className="text-sm text-green-600">
-                                    {formData.destination_location.city},{" "}
-                                    {formData.destination_location.country}
-                                </div>
-                            </div>
-                        )} */}
+
+                        {/* Error */}
                         {errors.destination_location && (
                             <p className="absolute left-0 top-full text-sm text-red-600 flex items-start gap-1">
-                                {" "}
                                 <AlertCircle className="w-4 h-4" />
                                 {errors.destination_location}
                             </p>

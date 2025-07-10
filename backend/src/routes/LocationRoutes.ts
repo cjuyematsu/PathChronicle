@@ -1,5 +1,6 @@
 import express from "express";
-import db from "../../lib/db";
+import db from "../lib/db";
+import loadSQL from "../lib/loadSQL";
 
 const router = express.Router();
 
@@ -17,76 +18,39 @@ interface Location {
 // Search locations with autocomplete
 router.get("/search", async (req, res) => {
     try {
-        const { q, limit = 10, type } = req.query;
+        const { q, limit = 5, type } = req.query;
 
-        if (!q || typeof q !== "string") {
+        // Validate query parameter (search only if longer than 2 characters)
+        if (typeof q !== "string") {
+            return res.status(400).json({ error: "Invalid query parameter" });
+        }
+        if (!q) {
             return res.json([]);
         }
-
         if (q.length < 2) {
             return res.json([]);
         }
 
-        // Build the query
-        let query = `
-            SELECT 
-                id,
-                name,
-                city,
-                country,
-                airport_code,
-                station_code,
-                location_type,
-                ST_X(coordinates) as longitude,
-                ST_Y(coordinates) as latitude,
-                timezone
-            FROM locations 
-            WHERE 
-        `;
-
-        const params = [];
-        const searchConditions = [];
-
-        // Search across multiple fields
-        const searchTerm = `%${q}%`;
-        searchConditions.push(`(
-            name ILIKE $${params.length + 1} OR 
-            city ILIKE $${params.length + 1} OR 
-            country ILIKE $${params.length + 1} OR 
-            airport_code ILIKE $${params.length + 1} OR
-            station_code ILIKE $${params.length + 1}
-        )`);
-        params.push(searchTerm);
-
-        // Optional: filter by location type
-        if (type && type !== "all") {
-            searchConditions.push(`location_type = $${params.length + 1}`);
-            params.push(type);
+        // Create a parameterized SQL query
+        let query = loadSQL("searchLocations.sql");
+        if (type) {
+            query = query.replace(
+                "-- $3 will be the type, if present",
+                "AND location_type = $3"
+            );
         }
 
-        query += searchConditions.join(" AND ");
+        // Create parameters for the query
+        const params = [q, parseInt(limit.toString())];
+        if (type) {
+            params.push(type as string);
+        }
 
-        // Order by relevance (exact matches first, then partial matches)
-        query += `
-            ORDER BY 
-                CASE 
-                    WHEN name ILIKE $${params.length + 1} THEN 1
-                    WHEN city ILIKE $${params.length + 1} THEN 2
-                    WHEN airport_code ILIKE $${params.length + 1} THEN 3
-                    WHEN station_code ILIKE $${params.length + 1} THEN 4
-                    ELSE 5 
-                END,
-                name ASC
-            LIMIT $${params.length + 2}
-        `;
-
-        const exactSearchTerm = q; // For exact match ordering
-        params.push(exactSearchTerm);
-        params.push(parseInt(limit.toString()));
-
+        // Execute the query
         const result = await db.query(query, params);
 
-        // Format the response to match frontend Location interface
+        // TODO: Format the response to match frontend Location interface
+        // TODO: Find a better way to format the display text
         const locations: Location[] = result.rows.map((row) => ({
             id: row.id,
             name: row.name,
@@ -104,7 +68,8 @@ router.get("/search", async (req, res) => {
     }
 });
 
-// Helper function to format display text
+//TODO:  Helper function to format display text
+//TODO: Find a better way to format the display text
 function formatDisplayText(location: any): string {
     const { name, city, country, airport_code, station_code, location_type } =
         location;

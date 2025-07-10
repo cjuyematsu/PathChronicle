@@ -1,5 +1,5 @@
 import db from "./db";
-import { AirportData } from "../types";
+import { AirportData } from "../../types";
 
 async function downloadAirportsData(): Promise<string> {
     try {

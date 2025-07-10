@@ -72,13 +72,13 @@ const LocationSearch = ({
             const response = await fetch(
                 `http://localhost:5000/api/locations/search?${params}`
             );
-            console.log(response);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data: Location[] = await response.json();
+            console.log("Search results:", data);
 
             setSuggestions(data);
             setShowSuggestions(true);

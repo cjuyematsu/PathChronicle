@@ -164,19 +164,6 @@ export async function initializeDatabase() {
         //     LEFT JOIN locations dl ON t.destination_location_id = dl.id;
         // `);
 
-        // Insert some sample locations (major airports/cities)
-        await db.query(`
-            INSERT INTO locations (name, city, country, airport_code, location_type, coordinates) 
-            VALUES 
-                ('John F. Kennedy International Airport', 'New York', 'United States', 'JFK', 'airport', ST_GeomFromText('POINT(-73.7781 40.6413)', 4326)),
-                ('Los Angeles International Airport', 'Los Angeles', 'United States', 'LAX', 'airport', ST_GeomFromText('POINT(-118.4081 33.9425)', 4326)),
-                ('London Heathrow Airport', 'London', 'United Kingdom', 'LHR', 'airport', ST_GeomFromText('POINT(-0.4614 51.4700)', 4326)),
-                ('Tokyo Haneda Airport', 'Tokyo', 'Japan', 'HND', 'airport', ST_GeomFromText('POINT(139.7798 35.5494)', 4326)),
-                ('Paris Charles de Gaulle Airport', 'Paris', 'France', 'CDG', 'airport', ST_GeomFromText('POINT(2.5479 49.0097)', 4326)),
-                ('Union Station', 'Washington DC', 'United States', 'WAS', 'train_station', ST_GeomFromText('POINT(-77.0063 38.8977)', 4326)),
-                ('Penn Station', 'New York', 'United States', 'NYP', 'train_station', ST_GeomFromText('POINT(-73.9935 40.7505)', 4326))
-        `);
-
         console.log("Database initialized successfully!");
         console.log(
             "Tables created: users, locations, trips, trip_segments, trip_routes, trip_photos"

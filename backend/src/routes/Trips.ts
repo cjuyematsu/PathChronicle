@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../../lib/db";
+import db from "../lib/db";
 //import { calculateTripDistance, createTripRoute } from '../db/initialize.js';
 
 const router = express.Router();

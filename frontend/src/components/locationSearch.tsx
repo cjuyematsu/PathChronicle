@@ -22,12 +22,16 @@ interface LocationSearchProps {
     onLocationSelect?: (location: LocationSearchRowWithDisplay) => void;
     placeholder?: string;
     initialValue?: string;
+    onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    name?: string; // Optional name prop for the input
 }
 
 const LocationSearch = ({
     onLocationSelect,
     placeholder = "Search cities, airports, or stations...",
     initialValue = "",
+    onInputChange,
+    name,
 }: LocationSearchProps) => {
     const [query, setQuery] = useState<string>(initialValue);
     const [suggestions, setSuggestions] = useState<
@@ -113,6 +117,7 @@ const LocationSearch = ({
         setQuery(value);
         setSelectedIndex(-1);
         setIsLocationSelected(false); // Reset the flag when user types
+        onInputChange?.(e); // Notify parent
     };
 
     // Handle suggestion selection
@@ -197,6 +202,7 @@ const LocationSearch = ({
                 <input
                     ref={inputRef}
                     type="text"
+                    name={name}
                     value={query}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}

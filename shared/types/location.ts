@@ -15,7 +15,10 @@ export type LocationType =
     | "train_station"
     | "city"
     | "bus_station"
-    | "port";
+    | "port"
+    | "other";
+
+export type TripType = "flight" | "train" | "bus" | "car" | "ferry" | "other";
 
 // For use in your existing code, you might want to extend with computed properties
 export interface LocationSearchRowWithDisplay extends LocationSearchRow {

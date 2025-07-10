@@ -39,11 +39,11 @@ CREATE INDEX IF NOT EXISTS idx_locations_coordinates ON locations USING GIST(coo
 CREATE TABLE IF NOT EXISTS trips(
     id serial PRIMARY KEY,
     user_id integer REFERENCES users(id) ON DELETE CASCADE,
-    name varchar(255),
+    name varchar(255), -- (optional)
     -- Trip name/description
     trip_type varchar(50) NOT NULL CHECK (trip_type IN ('flight', 'train', 'bus', 'car', 'ferry', 'other')),
-    origin_location_id integer REFERENCES locations(id),
-    destination_location_id integer REFERENCES locations(id),
+    origin_location_id integer NOT NULL REFERENCES locations(id),
+    destination_location_id integer NOT NULL REFERENCES locations(id),
     departure_date date,
     -- (optional)
     arrival_date date,

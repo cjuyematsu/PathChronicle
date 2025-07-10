@@ -36,6 +36,8 @@ const LocationSearch = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+    const [isLocationSelected, setIsLocationSelected] =
+        useState<boolean>(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -82,6 +84,11 @@ const LocationSearch = ({
             clearTimeout(debounceRef.current);
         }
 
+        // Don't search if a location was just selected
+        if (isLocationSelected) {
+            return;
+        }
+
         if (query.trim()) {
             setIsLoading(true);
             debounceRef.current = setTimeout(() => {
@@ -98,20 +105,22 @@ const LocationSearch = ({
                 clearTimeout(debounceRef.current);
             }
         };
-    }, [query]);
+    }, [query, isLocationSelected]);
 
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setQuery(value);
         setSelectedIndex(-1);
+        setIsLocationSelected(false); // Reset the flag when user types
     };
 
     // Handle suggestion selection
     const handleSuggestionClick = (location: LocationSearchRowWithDisplay) => {
-        setQuery(location.name); //TODO: Use name or display based on your preference
+        setQuery(location.name);
         setShowSuggestions(false);
         setSelectedIndex(-1);
+        setIsLocationSelected(true); // Set flag to prevent search
         if (onLocationSelect) {
             onLocationSelect(location);
         }
@@ -192,7 +201,9 @@ const LocationSearch = ({
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() =>
-                        query.length >= 2 && setShowSuggestions(true)
+                        query.length >= 2 &&
+                        !isLocationSelected &&
+                        setShowSuggestions(true)
                     }
                     placeholder={placeholder}
                     className="w-full pl-12 pr-12 py-3 text-base border border-gray-300 rounded-xl bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 placeholder:text-gray-400"
@@ -204,6 +215,7 @@ const LocationSearch = ({
                             size="md"
                             text="Finding routes..."
                             layout="horizontal"
+                            color="orange"
                         />
                     </div>
                 )}

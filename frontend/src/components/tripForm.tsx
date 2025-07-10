@@ -1,9 +1,6 @@
 "use client";
 import { useState } from "react";
-import {
-    LocationType,
-    LocationSearchRowWithDisplay,
-} from "@shared/types/location";
+import { LocationSearchRowWithDisplay } from "@shared/types/location";
 import { TripFormData } from "../types";
 import LocationSearch from "./locationSearch";
 
@@ -149,14 +146,13 @@ const TripForm = () => {
             formData.origin_location.id === formData.destination_location.id
         ) {
             newErrors.destination_location =
-                "Destination must be different from origin";
+                "Origin and destination can't match";
         }
 
         // if (!formData.departure_date) {
         //     newErrors.departure_date = "Departure date is required";
         // }
         // TODO: Ensure departure date is before arrival date
-
 
         // TODO: Ensure departure time is before arrival time
 
@@ -176,6 +172,11 @@ const TripForm = () => {
         // TODO: For example, send the form data to your API or backend service to add to the database
         try {
             // Prepare the data for submission
+            // TODO: Calculate distance between origin and destination
+            // TODO: Calculate duration based on departure and arrival times (if provided)
+            // TODO: Create tripData type
+            // TODO: Create API endpoint to handle trip creation
+            // TODO: Validate destination and origin locations (make sure they are not the same + they exist in the database)
             const tripData = {
                 name: formData.name,
                 trip_type: formData.trip_type,
@@ -192,7 +193,7 @@ const TripForm = () => {
                 notes: formData.notes || null,
             };
 
-            // Submit to your API
+            //TODO: Submit to your API
             const response = await fetch("/api/trips", {
                 method: "POST",
                 headers: {
@@ -209,6 +210,8 @@ const TripForm = () => {
 
             setSubmitStatus("success");
 
+            //TODO: Handle successful submission (redirect, show message, etc.)
+            // TODO: Remove this when you implement form submission
             // Reset form after successful submission
             setTimeout(() => {
                 setFormData({
@@ -228,6 +231,7 @@ const TripForm = () => {
                 });
                 setSubmitStatus(null);
             }, 2000);
+            // ------
         } catch (error) {
             console.error("Error creating trip:", error);
             setSubmitStatus("error");
@@ -382,7 +386,7 @@ const TripForm = () => {
 
                 {/* Origin and Destination */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                    <div className="relative pb-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Origin Location *
                         </label>
@@ -413,14 +417,14 @@ const TripForm = () => {
                             </div>
                         )} */}
                         {errors.origin_location && (
-                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                            <p className="absolute left-0 top-full text-sm text-red-600 flex items-start gap-1">
                                 <AlertCircle className="w-4 h-4" />
                                 {errors.origin_location}
                             </p>
                         )}
                     </div>
 
-                    <div>
+                    <div className="relative pb-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Destination Location *
                         </label>
@@ -453,7 +457,8 @@ const TripForm = () => {
                             </div>
                         )} */}
                         {errors.destination_location && (
-                            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                            <p className="absolute left-0 top-full text-sm text-red-600 flex items-start gap-1">
+                                {" "}
                                 <AlertCircle className="w-4 h-4" />
                                 {errors.destination_location}
                             </p>

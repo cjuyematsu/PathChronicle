@@ -2,6 +2,7 @@ import express from "express";
 //import authRoutes from "./routes/AuthRoutes";
 import tripRoutes from "./routes/Trips";
 import locationRoutes from "./routes/LocationRoutes";
+import authRoutes from "./routes/AuthRoutes"
 //import getAirports from "./lib/airports";
 import cors from "cors";
 
@@ -32,6 +33,7 @@ async function startServer() {
         //app.use("/api/auth", authRoutes);
         app.use("/api/locations", locationRoutes);
         app.use("/api/trips", tripRoutes);
+        app.use("/api/auth", authRoutes)
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

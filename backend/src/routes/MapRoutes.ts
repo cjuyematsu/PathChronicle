@@ -8,7 +8,7 @@ router.post("/savedata/:id", async (req, res) => {
 
     try {
         await db.query(
-            "INSERT INTO tripes (userId, origin, destination) VALUES ($1, $2, $3)",
+            "INSERT INTO trips (userId, origin, destination) VALUES ($1, $2, $3)",
             [userId, origin, destination]
         );
         res.status(201).send("trip data inserted successfully");

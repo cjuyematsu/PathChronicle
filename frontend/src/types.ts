@@ -28,3 +28,34 @@ export interface TripTypeOption {
     label: string;
     icon: React.ComponentType<{ className?: string }>;
 }
+
+export interface Location {
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    country_code?: string;
+    city?: string;
+  }
+  
+  export interface Trip {
+    id: number;
+    user_id: number;
+    name: string | null;
+    trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+    origin_location_id: number;
+    destination_location_id: number;
+    departure_date: string | null; // or Date if you parse it
+    arrival_date: string | null; // or Date if you parse it
+    departure_time: string | null;
+    arrival_time: string | null;
+    flight_number: string | null;
+    train_number: string | null;
+    airline: string | null;
+    operator: string | null;
+    distance_km: number | null;
+    duration_minutes: number | null;
+    notes: string | null;
+    created_at: string; // or Date
+    updated_at: string; // or Date
+  }

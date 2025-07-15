@@ -7,10 +7,10 @@ const router = express.Router();
 const regex = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/; // Pattern of email
 
 router.post("/signup", async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, countryCode } = req.body;
 
     if (!email || !password) {
-        res.status(400).json({message: 'Email and password are required.'});
+        res.status(400).json({message: 'Email, password and country are required.'});
         return;
     }
 
@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10); // Hashes password for security
-        await db.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, hashedPassword]);
+        await db.query('INSERT INTO users (email, password, country_code) VALUES ($1, $2, $3)', [email, hashedPassword, countryCode]);
         res.status(201).json({message: 'User registration successful'})
     }
     catch (error) {
@@ -88,7 +88,7 @@ const verifyToken = (req: any, res: any, next: any) => {
 
 router.get('/userdata', verifyToken, async (req: any, res): Promise<void> => {
     try {
-        const result = await db.query('SELECT id, email FROM users WHERE id = $1', [req.user.id]);
+        const result = await db.query('SELECT id, email, country_code FROM users WHERE id = $1', [req.user.id]);
         const user = result.rows[0];
 
         if (!user) {
@@ -99,7 +99,7 @@ router.get('/userdata', verifyToken, async (req: any, res): Promise<void> => {
         res.status(200).json({
             name: user.email.split('@')[0], 
             email: user.email,
-            avatar: "/avatars/shadcn.jpg",
+            countryCode: user.country_code,
         });
     } catch (error) {
         res.status(500).json({message: 'Error fetching user data'});

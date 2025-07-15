@@ -191,7 +191,7 @@ const TripForm = () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const result = await response.json();
+            // const result = await response.json();
 
             setSubmitStatus("success");
 

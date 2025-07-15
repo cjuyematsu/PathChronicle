@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Loader2, Plane, Train, Building, Bus, Ship } from "lucide-react";
+import { Plane, Train, Building, Bus, Ship } from "lucide-react";
 
 // Define the props interface
 interface LoadingProps {
@@ -32,7 +32,7 @@ const Loading = ({
             }, 800);
             return () => clearInterval(interval);
         }
-    }, [variant]);
+    }, [variant, travelIcons.length]);
 
     // Size classes
     const sizeClasses = {

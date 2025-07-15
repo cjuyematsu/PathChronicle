@@ -283,7 +283,7 @@ const LocationSearch = ({
                             No locations found
                         </div>
                         <div className="text-sm text-gray-400 mt-1">
-                            Try searching for "{query}" with different terms
+                            Try searching for &ldquo;{query}&ldquo; with different terms
                         </div>
                     </div>
                 )}

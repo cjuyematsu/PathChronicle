@@ -1,114 +1,60 @@
-"use client"
+import { Button } from "./ui/button";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "./ui/tooltip";
+import { useSidebar } from "./ui/sidebar";
+import { getCountryName } from '@/src/data/countries'; 
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react"
+interface UserProfile {
+  name: string;
+  email: string;
+  countryCode: string;
+}
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/src/components/navbar/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/src/components/navbar/ui/dropdown-menu"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/src/components/navbar/ui/sidebar"
+interface NavUserProps {
+  user: UserProfile;
+  onLogout: () => void;
+}
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
-  const { isMobile } = useSidebar()
-
+export function NavUser({ user, onLogout }: NavUserProps) {
+  const { state, isMobile } = useSidebar();
+  
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
+    <div className="flex flex-col items-center gap-4 p-2">
+      {/* 👇 Add class here to center content when the sidebar is collapsed */}
+      <div className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/* The standard 4:3 flag icon will be used */}
+            <span 
+              className={`fi fi-${user.countryCode} text-xl shrink-0`}
+              title={`${getCountryName(user.countryCode)} flag`}
+            />
+          </TooltipTrigger>
+          <TooltipContent 
+            side="right" 
+            align="center"
+            hidden={state !== "collapsed" || isMobile}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  )
+            {user.name} ({getCountryName(user.countryCode)})
+          </TooltipContent>
+        </Tooltip>
+        
+        <div className="flex flex-col text-left min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+          <span className="font-semibold text-sm truncate">{user.name}</span>
+          <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+        </div>
+      </div>
+      
+      <Button 
+        variant="outline" 
+        className="w-full group-data-[collapsible=icon]:hidden" 
+        onClick={onLogout}
+      >
+        Logout
+      </Button>
+    </div>
+  );
 }

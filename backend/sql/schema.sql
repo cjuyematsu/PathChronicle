@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE IF NOT EXISTS users(
     id serial PRIMARY KEY,
     email varchar(255) UNIQUE NOT NULL,
-    country_code VARCHAR(2),
+    country_code VARCHAR(6),
     CONSTRAINT unique_user_email UNIQUE (email), -- Ensure unique email
     password VARCHAR(255) NOT NULL,
     name varchar(100),

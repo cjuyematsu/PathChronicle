@@ -106,4 +106,21 @@ router.get('/userdata', verifyToken, async (req: any, res): Promise<void> => {
     }
 });
 
+router.post('/update-country', verifyToken, async (req: any, res): Promise<void> => {
+    const { countryCode } = req.body;
+
+    if (!countryCode) {
+        res.status(400).json({message: 'Country code is required.'});
+        return;
+    }
+
+    try {
+        await db.query('UPDATE users SET country_code = $1 WHERE id = $2', [countryCode, req.user.id]);
+        res.status(200).json({message: 'Country updated successfully'});
+    } catch (error) {
+        console.error('Update Country Error:', error);
+        res.status(500).json({message: 'Error updating country'});
+    }
+});
+
 export default router;

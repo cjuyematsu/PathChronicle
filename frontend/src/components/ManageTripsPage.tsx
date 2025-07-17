@@ -452,7 +452,6 @@ const ManageTripsPage = () => {
                     </div>
                   </div>
 
-                  {/* Additional Details */}
                   <div className="flex flex-wrap gap-4 text-sm text-slate-400 mb-3">
                     {trip.flight_number && (
                       <span>Flight: {trip.flight_number}</span>
@@ -494,7 +493,6 @@ const ManageTripsPage = () => {
         )}
       </div>
 
-      {/* Delete confirmation modal */}
       {tripToDelete && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <Card className="max-w-md w-full">

@@ -506,7 +506,7 @@ const ManageTripsPage = () => {
             </div>
             
             <p className="text-slate-300 mb-6">
-              Are you sure you want to delete "{getTripDisplayName(tripToDelete)}"? 
+              Are you sure you want to delete &ldquo;{getTripDisplayName(tripToDelete)}&rdquo;? 
               This action cannot be undone.
             </p>
             

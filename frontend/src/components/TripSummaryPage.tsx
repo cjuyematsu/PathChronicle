@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Calendar, MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, Clock, Globe, TrendingUp } from 'lucide-react';
+import { MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, Clock, Globe, TrendingUp } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface Trip {

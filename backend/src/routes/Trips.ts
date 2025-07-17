@@ -10,7 +10,7 @@ router.get("/user/:userId", async (req, res) => {
         const { userId } = req.params;
         const result = await db.query(
             `
-            SELECT * FROM trip_details 
+            SELECT * FROM trips 
             WHERE user_id = $1 
             ORDER BY departure_date DESC
         `,
@@ -21,6 +21,26 @@ router.get("/user/:userId", async (req, res) => {
     } catch (error) {
         console.error("Error fetching trips:", error);
         res.status(500).json({ error: "Failed to fetch trips" });
+    }
+});
+
+router.delete("/delete/:tripId", async (req, res) => {
+    try {
+        const { tripId } = req.params;
+        const { userId } = req.body;
+
+        const verifyResult = await db.query(
+            'SELECT id FROM trips WHERE id = $1 AND user_id = $2',
+            [tripId, userId]
+        );
+        if (verifyResult.rows.length === 0) {
+            return res.status(404).json({ error: "Trip not found or unauthorized" });
+        }
+        await db.query('DELETE FROM trips WHERE id = $1', [tripId]);
+    }
+    catch (error) {
+        console.error("Error deleting trip:", error);
+        return res.status(500).json({ error: "Failed to delete trip" });
     }
 });
 

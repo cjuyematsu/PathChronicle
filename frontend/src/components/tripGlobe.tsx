@@ -96,7 +96,7 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     <div className="w-full h-full relative">
       <div 
         ref={mapContainer} 
-        className="w-full h-full rounded-lg shadow-lg"
+        className="w-full h-full"
       />
       {(!mapTilerKey || mapTilerKey === 'YOUR_MAPTILER_KEY') && (
         <div className="absolute bottom-4 left-4 bg-red-100 border border-red-400 rounded-lg p-3 shadow-md">

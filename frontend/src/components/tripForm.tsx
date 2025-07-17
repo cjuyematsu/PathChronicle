@@ -231,7 +231,7 @@ const TripForm = () => {
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Flight Number
                             </label>
                             <input
@@ -240,11 +240,11 @@ const TripForm = () => {
                                 value={formData.flight_number}
                                 onChange={handleInputChange}
                                 placeholder="e.g., AA123"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Airline
                             </label>
                             <input
@@ -253,7 +253,7 @@ const TripForm = () => {
                                 value={formData.airline}
                                 onChange={handleInputChange}
                                 placeholder="e.g., American Airlines"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                             />
                         </div>
                     </div>
@@ -262,7 +262,7 @@ const TripForm = () => {
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Train Number
                             </label>
                             <input
@@ -271,11 +271,11 @@ const TripForm = () => {
                                 value={formData.train_number}
                                 onChange={handleInputChange}
                                 placeholder="e.g., TGV123"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Operator
                             </label>
                             <input
@@ -284,7 +284,7 @@ const TripForm = () => {
                                 value={formData.operator}
                                 onChange={handleInputChange}
                                 placeholder="e.g., SNCF"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                             />
                         </div>
                     </div>
@@ -293,7 +293,7 @@ const TripForm = () => {
             case "ferry":
                 return (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-black mb-2">
                             Operator
                         </label>
                         <input
@@ -302,7 +302,7 @@ const TripForm = () => {
                             value={formData.operator}
                             onChange={handleInputChange}
                             placeholder="e.g., Greyhound, Stena Line"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                         />
                     </div>
                 );
@@ -312,20 +312,19 @@ const TripForm = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-lg">
+        <div className="w-full h-full p-6 bg-white">
             <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl font-bold text-black mb-2">
                     Create New Trip
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-black">
                     Add details about your upcoming or past journey
                 </p>
             </div>
 
             <div className="space-y-6">
-                {/* Trip Name */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-black mb-2">
                         Trip Name
                     </label>
                     <input
@@ -334,13 +333,13 @@ const TripForm = () => {
                         value={formData.name}
                         onChange={handleInputChange}
                         placeholder="e.g., Summer Vacation to Paris"
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                     />
                 </div>
 
                 {/* Trip Type */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium text-black mb-3">
                         Transportation Type *
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -357,7 +356,7 @@ const TripForm = () => {
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                                     formData.trip_type === value
                                         ? "border-blue-500 bg-blue-50 text-blue-700"
-                                        : "border-gray-200 hover:border-gray-300 text-gray-600"
+                                        : "border-gray-200 hover:border-gray-300 text-black"
                                 }`}
                             >
                                 <Icon className="w-6 h-6" />
@@ -372,7 +371,7 @@ const TripForm = () => {
                 {/* Origin and Destination */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="relative pb-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        <label className="flex items-center text-sm font-medium text-black mb-2">
                             <div className="pr-2">Origin Location * </div>
                             {formData.origin_location && (
                                 <CheckCircle className="w-4 h-4" />
@@ -400,7 +399,7 @@ const TripForm = () => {
                     </div>
 
                     <div className="relative pb-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                        <label className="flex items-center text-sm font-medium text-black mb-2">
                             <div className="pr-2">Destination Location * </div>
                             {formData.destination_location && (
                                 <CheckCircle className="w-4 h-4" />
@@ -435,7 +434,7 @@ const TripForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Departure Date
                             </label>
                             <div className="relative">
@@ -445,13 +444,13 @@ const TripForm = () => {
                                     name="departure_date"
                                     value={formData.departure_date}
                                     onChange={handleInputChange}
-                                    className="w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    className="w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Departure Time
                             </label>
                             <div className="relative">
@@ -461,7 +460,7 @@ const TripForm = () => {
                                     name="departure_time"
                                     value={formData.departure_time}
                                     onChange={handleInputChange}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                                 />
                             </div>
                         </div>
@@ -469,7 +468,7 @@ const TripForm = () => {
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Arrival Date
                             </label>
                             <div className="relative">
@@ -479,14 +478,14 @@ const TripForm = () => {
                                     name="arrival_date"
                                     value={formData.arrival_date}
                                     onChange={handleInputChange}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                                 />
                                 {/* TODO: Add error message when arrival_date is before departure */}
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-black mb-2">
                                 Arrival Time
                             </label>
                             <div className="relative">
@@ -496,7 +495,7 @@ const TripForm = () => {
                                     name="arrival_time"
                                     value={formData.arrival_time}
                                     onChange={handleInputChange}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-black"
                                 />
                                 {/* TODO: Add error message when arrival_time is before departure_time */}
                             </div>
@@ -509,7 +508,7 @@ const TripForm = () => {
 
                 {/* Notes */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-black mb-2">
                         Notes
                     </label>
                     <textarea
@@ -518,7 +517,7 @@ const TripForm = () => {
                         onChange={handleInputChange}
                         rows={4}
                         placeholder="Additional information about your trip..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-black"
                     />
                 </div>
 

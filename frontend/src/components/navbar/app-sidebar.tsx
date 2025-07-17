@@ -13,8 +13,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, logout, updateUserCountry } = useAuth();
   const [showFlagSelector, setShowFlagSelector] = useState(false);
 
-  console.log("[AppSidebar] User from useAuth:", user);
-
   const navItems: NavItem[] = [
     {
       title: "View Globe",
@@ -45,7 +43,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <>
-
       <FlagSelectorPopup
         isOpen={showFlagSelector}
         onClose={() => setShowFlagSelector(false)}
@@ -70,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onChangeCountry={() => setShowFlagSelector(true)}
             />
           ) : (
-            <div>Loading User...</div>
+            <div></div>
           )}
         </SidebarFooter>
       </Sidebar>

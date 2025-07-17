@@ -20,9 +20,8 @@ export function ClientLayoutWrapper({ children }: { children: React.ReactNode })
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarTrigger />
-
-      <main className="w-full h-full">
+      <main className="w-full h-full relative">
+        <SidebarTrigger className="absolute top-4 left-4 z-50" />
         {children}
       </main>
     </SidebarProvider>

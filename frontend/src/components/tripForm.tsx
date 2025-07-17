@@ -314,7 +314,7 @@ const TripForm = () => {
     return (
         <div className="w-full h-full p-6 bg-white">
             <div className="mb-8">
-                <h2 className="text-3xl font-bold text-black mb-2">
+                <h2 className="text-3xl font-bold text-black mb-2 py-4">
                     Create New Trip
                 </h2>
                 <p className="text-black">

@@ -1,17 +1,139 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-interface GlobeMapProps {
+interface Location {
+  name: string;
+  coordinates: [number, number];
+  city: string;
+}
+
+interface Trip {
+  id: number;
+  name: string;
+  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+  origin: Location;
+  destination: Location;
+  departure_date: string;
+  airline?: string;
+  operator?: string;
+}
+
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  brightness: number;
+  twinkleSpeed: number;
+  twinklePhase: number;
+}
+
+interface LoadingScreenProps {
+  isLoading: boolean;
+}
+
+interface TripInfoProps {
+  selectedTrip: Trip | null;
+  onClose: () => void;
+}
+
+interface GlobeTripVisualizationProps {
   center?: [number, number];
   zoom?: number;
-  style?: string;
   mapTilerKey?: string;
 }
 
-const LoadingScreen: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
+const mockTrips: Trip[] = [
+  {
+    id: 1,
+    name: "Summer Europe Tour",
+    trip_type: "flight",
+    origin: {
+      name: "JFK International Airport",
+      coordinates: [-73.7781, 40.6413],
+      city: "New York"
+    },
+    destination: {
+      name: "Charles de Gaulle Airport",
+      coordinates: [2.5479, 49.0097],
+      city: "Paris"
+    },
+    departure_date: "2025-08-15",
+    airline: "Air France"
+  },
+  {
+    id: 2,
+    name: "Asian Business Trip",
+    trip_type: "flight",
+    origin: {
+      name: "Los Angeles International",
+      coordinates: [-118.4085, 33.9425],
+      city: "Los Angeles"
+    },
+    destination: {
+      name: "Narita International Airport",
+      coordinates: [140.3929, 35.7653],
+      city: "Tokyo"
+    },
+    departure_date: "2025-09-01",
+    airline: "Japan Airlines"
+  },
+  {
+    id: 3,
+    name: "South American Adventure",
+    trip_type: "flight",
+    origin: {
+      name: "Miami International",
+      coordinates: [-80.2870, 25.7959],
+      city: "Miami"
+    },
+    destination: {
+      name: "Galeão International",
+      coordinates: [-43.2436, -22.8099],
+      city: "Rio de Janeiro"
+    },
+    departure_date: "2025-10-15",
+    airline: "LATAM"
+  },
+  {
+    id: 4,
+    name: "Trans-Atlantic Journey",
+    trip_type: "flight",
+    origin: {
+      name: "Heathrow Airport",
+      coordinates: [-0.4543, 51.4700],
+      city: "London"
+    },
+    destination: {
+      name: "Sydney Airport",
+      coordinates: [151.1772, -33.9399],
+      city: "Sydney"
+    },
+    departure_date: "2025-11-20",
+    airline: "Qantas"
+  },
+  {
+    id: 5,
+    name: "Nordic Express",
+    trip_type: "train",
+    origin: {
+      name: "Stockholm Central",
+      coordinates: [18.0686, 59.3293],
+      city: "Stockholm"
+    },
+    destination: {
+      name: "Oslo Central",
+      coordinates: [10.7522, 59.9139],
+      city: "Oslo"
+    },
+    departure_date: "2025-07-10",
+    operator: "SJ"
+  }
+];
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
   return (
     <div
       className={`absolute inset-0 z-50 flex items-center justify-center bg-[#000014] transition-opacity duration-1000 ${
@@ -25,11 +147,65 @@ const LoadingScreen: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   );
 };
 
-const GlobeMap: React.FC<GlobeMapProps> = ({
-  center = [-100, 40],
-  zoom = 1.5,  
-  style = 'liberty',
-  mapTilerKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY || 'YOUR_MAPTILER_KEY'
+const TripInfo: React.FC<TripInfoProps> = ({ selectedTrip, onClose }) => {
+  if (!selectedTrip) return null;
+
+  const tripTypeIcons: Record<Trip['trip_type'], string> = {
+    flight: "✈️",
+    train: "🚂",
+    bus: "🚌",
+    car: "🚗",
+    ferry: "⛴️",
+    other: "📍"
+  };
+
+  return (
+    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl max-w-sm z-40">
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-lg font-bold text-gray-800">{selectedTrip.name}</h3>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 text-xl leading-none"
+        >
+          ×
+        </button>
+      </div>
+      <div className="space-y-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{tripTypeIcons[selectedTrip.trip_type]}</span>
+          <span className="capitalize text-gray-600">{selectedTrip.trip_type}</span>
+        </div>
+        <div className="border-t pt-2">
+          <div className="font-medium text-gray-700">From:</div>
+          <div className="text-gray-600">{selectedTrip.origin.city}</div>
+          <div className="text-xs text-gray-500">{selectedTrip.origin.name}</div>
+        </div>
+        <div className="border-t pt-2">
+          <div className="font-medium text-gray-700">To:</div>
+          <div className="text-gray-600">{selectedTrip.destination.city}</div>
+          <div className="text-xs text-gray-500">{selectedTrip.destination.name}</div>
+        </div>
+        {selectedTrip.departure_date && (
+          <div className="border-t pt-2">
+            <div className="text-gray-600">
+              <span className="font-medium">Date:</span> {new Date(selectedTrip.departure_date).toLocaleDateString()}
+            </div>
+          </div>
+        )}
+        {(selectedTrip.airline || selectedTrip.operator) && (
+          <div className="text-gray-600">
+            <span className="font-medium">Operator:</span> {selectedTrip.airline || selectedTrip.operator}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
+  center = [0, 20],
+  zoom = 1.5,
+  mapTilerKey = 'YOUR_MAPTILER_KEY'
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -37,6 +213,8 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [trips] = useState<Trip[]>(mockTrips);
 
   useEffect(() => {
     const canvas = starsCanvasRef.current;
@@ -52,19 +230,11 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    const stars: Array<{
-      x: number;
-      y: number;
-      size: number;
-      brightness: number;
-      twinkleSpeed: number;
-      twinklePhase: number;
-    }> = [];
-
+    const stars: Star[] = [];
     const createStars = () => {
       const starCount = 300;
       stars.length = 0;
-      
+
       for (let i = 0; i < starCount; i++) {
         stars.push({
           x: Math.random() * canvas.width,
@@ -86,7 +256,7 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
       stars.forEach(star => {
         const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase) * 0.3 + 0.7;
         const alpha = star.brightness * twinkle;
-        
+
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
@@ -119,153 +289,381 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (!mapContainer.current) return;
+  const addTripVisualizations = useCallback(() => {
+    if (!map.current) return;
 
-    if (!mapTilerKey || mapTilerKey === 'YOUR_MAPTILER_KEY') {
-      console.error('MapTiler API key is required. Please set NEXT_PUBLIC_MAPTILER_API_KEY in your environment variables.');
-      setIsLoading(false);
-      return;
+    try {
+      const createGreatCircleRoute = (start: [number, number], end: [number, number]): [number, number][] => {
+        const points: [number, number][] = [];
+        const numPoints = 100;
+
+        let endLon = end[0];
+        if (Math.abs(end[0] - start[0]) > 180) {
+            endLon = end[0] > start[0] ? end[0] - 360 : end[0] + 360;
+        }
+
+        const lat1 = start[1] * Math.PI / 180;
+        const lon1 = start[0] * Math.PI / 180;
+        const lat2 = end[1] * Math.PI / 180;
+        const lon2 = endLon * Math.PI / 180;
+        
+        const dLon = lon2 - lon1;
+        const a = Math.sin((lat2 - lat1) / 2) ** 2 + 
+                  Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        let lastLon = start[0];
+
+        for (let i = 0; i <= numPoints; i++) {
+          const f = i / numPoints;
+
+          if (c === 0) {
+              points.push([start[0], start[1]]);
+              continue;
+          }
+          
+          const A = Math.sin((1 - f) * c) / Math.sin(c);
+          const B = Math.sin(f * c) / Math.sin(c);
+          
+          const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+          const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+          const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+          
+          const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
+          let lon = Math.atan2(y, x) * 180 / Math.PI;
+
+          if (i > 0) {
+              if (lon - lastLon > 180) {
+                  lon -= 360;
+              } else if (lastLon - lon > 180) {
+                  lon += 360;
+              }
+          }
+          lastLon = lon;
+          points.push([lon, lat]);
+        }
+        
+        return points;
+      };
+
+      const routeFeatures = trips.map(trip => ({
+        type: 'Feature' as const,
+        properties: {
+          id: trip.id,
+          name: trip.name,
+          trip_type: trip.trip_type
+        },
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: createGreatCircleRoute(trip.origin.coordinates, trip.destination.coordinates)
+        }
+      }));
+
+      map.current.addSource('trip-routes', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: routeFeatures
+        }
+      });
+
+      map.current.addLayer({
+        id: 'trip-routes-bg',
+        type: 'line',
+        source: 'trip-routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': [
+            'case',
+            ['==', ['get', 'trip_type'], 'flight'], '#0066FF',
+            ['==', ['get', 'trip_type'], 'train'], '#00AA44',
+            '#AA00FF'
+          ],
+          'line-width': 8,
+          'line-opacity': 0.2,
+          'line-blur': 3
+        }
+      });
+
+      map.current.addLayer({
+        id: 'trip-routes-layer',
+        type: 'line',
+        source: 'trip-routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': [
+            'case',
+            ['==', ['get', 'trip_type'], 'flight'], '#0066FF',
+            ['==', ['get', 'trip_type'], 'train'], '#00AA44',
+            '#AA00FF'
+          ],
+          'line-width': 3,
+          'line-opacity': 0.9,
+          'line-dasharray': [0, 2, 2]
+        }
+      });
+
+      const locationFeatures: GeoJSON.Feature[] = [];
+      const addedLocations = new Set<string>();
+
+      trips.forEach(trip => {
+        const originKey = `${trip.origin.coordinates[0]},${trip.origin.coordinates[1]}`;
+        const destKey = `${trip.destination.coordinates[0]},${trip.destination.coordinates[1]}`;
+
+        if (!addedLocations.has(originKey)) {
+          locationFeatures.push({
+            type: 'Feature',
+            properties: {
+              name: trip.origin.name,
+              city: trip.origin.city,
+              type: 'origin'
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: trip.origin.coordinates
+            }
+          });
+          addedLocations.add(originKey);
+        }
+
+        if (!addedLocations.has(destKey)) {
+          locationFeatures.push({
+            type: 'Feature',
+            properties: {
+              name: trip.destination.name,
+              city: trip.destination.city,
+              type: 'destination'
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: trip.destination.coordinates
+            }
+          });
+          addedLocations.add(destKey);
+        }
+      });
+
+      map.current.addSource('locations', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: locationFeatures
+        }
+      });
+
+      map.current.addLayer({
+        id: 'location-glow',
+        type: 'circle',
+        source: 'locations',
+        paint: {
+          'circle-radius': 20,
+          'circle-color': '#FFFFFF',
+          'circle-opacity': 0.2,
+          'circle-blur': 1
+        }
+      });
+
+      map.current.addLayer({
+        id: 'location-circles',
+        type: 'circle',
+        source: 'locations',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#FF3366',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#FFFFFF',
+          'circle-stroke-opacity': 0.9
+        }
+      });
+
+      map.current.addLayer({
+        id: 'location-labels',
+        type: 'symbol',
+        source: 'locations',
+        layout: {
+          'text-field': ['get', 'city'],
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          'text-size': 13,
+          'text-offset': [0, 1.8],
+          'text-anchor': 'top'
+        },
+        paint: {
+          'text-color': '#333333',
+          'text-halo-color': '#FFFFFF',
+          'text-halo-width': 2
+        }
+      });
+
+      const dashArraySequence = [
+        [0, 2, 2],
+        [0.5, 2, 1.5],
+        [1, 2, 1],
+        [1.5, 2, 0.5],
+        [2, 2, 0],
+        [0, 0.5, 2, 1.5],
+        [0, 1, 2, 1],
+        [0, 1.5, 2, 0.5]
+      ];
+
+      let step = 0;
+      const animateDashArray = () => {
+        if (!map.current || !map.current.getLayer('trip-routes-layer')) return;
+
+        const newStep = parseInt((Date.now() / 50).toString()) % dashArraySequence.length;
+
+        if (newStep !== step) {
+          map.current.setPaintProperty(
+            'trip-routes-layer',
+            'line-dasharray',
+            dashArraySequence[newStep]
+          );
+          step = newStep;
+        }
+
+        requestAnimationFrame(animateDashArray);
+      };
+      animateDashArray();
+
+      map.current.on('click', 'trip-routes-layer', (e) => {
+        const features = map.current?.queryRenderedFeatures(e.point, {
+          layers: ['trip-routes-layer']
+        });
+
+        if (features && features.length > 0) {
+          const tripId = features[0].properties?.id;
+          const trip = trips.find(t => t.id === tripId);
+          if (trip) {
+            setSelectedTrip(trip);
+          }
+        }
+      });
+
+      map.current.on('mouseenter', 'trip-routes-layer', () => {
+        if (map.current) {
+          map.current.getCanvas().style.cursor = 'pointer';
+        }
+      });
+
+      map.current.on('mouseleave', 'trip-routes-layer', () => {
+        if (map.current) {
+          map.current.getCanvas().style.cursor = '';
+        }
+      });
+
+    } catch (error) {
+      console.error('Error adding trip visualizations:', error);
     }
+  }, [trips]);
 
-    const styleUrls = {
-      streets: `https://api.maptiler.com/maps/streets-v2/style.json?key=${mapTilerKey}`,
-    };
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    const actualMapTilerKey = mapTilerKey === 'YOUR_MAPTILER_KEY' ? process.env.NEXT_PUBLIC_MAPTILER_API_KEY : mapTilerKey;
+    const hasValidKey = actualMapTilerKey && actualMapTilerKey !== 'YOUR_MAPTILER_KEY';
 
     try {
       map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: styleUrls.streets,
+        style: hasValidKey
+          ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${actualMapTilerKey}`
+          : {
+              version: 8,
+              sources: {
+                'raster-tiles': {
+                  type: 'raster',
+                  tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: '© OpenStreetMap contributors'
+                }
+              },
+              layers: [{
+                id: 'simple-tiles',
+                type: 'raster',
+                source: 'raster-tiles',
+                minzoom: 0,
+                maxzoom: 22
+              }]
+            },
         center: center,
         zoom: zoom,
-        projection: 'globe', 
-        renderWorldCopies: false, 
+        projection: 'globe',
+        renderWorldCopies: false,
         antialias: true,
         preserveDrawingBuffer: true
       } as maplibregl.MapOptions);
 
-      map.current.on('style.load', () => {
-        console.log('Map style loaded successfully');       
-        
+      map.current.on('load', () => {
+        console.log('Map fully loaded');
 
-        if (map.current && 'setProjection' in map.current && typeof map.current.setProjection === 'function') {
-          (map.current).setProjection({ type: 'globe' });
+        if (map.current && 'setProjection' in map.current) {
+          try {
+            (map.current).setProjection({ type: 'globe' });
+          } catch {
+            console.log('Globe projection not supported');
+          }
         }
 
+        addTripVisualizations();
         setMapReady(true);
-        
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 500);
-      });
-
-      map.current.on('error', (e) => {
-        console.error('MapLibre error:', e);
-        if (map.current && e.error?.status === 404) {
-          console.warn('MapTiler style failed, falling back to basic style');
-          map.current.setStyle({
-            version: 8,
-            sources: {
-              'raster-tiles': {
-                type: 'raster',
-                tiles: [
-                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                ],
-                tileSize: 256,
-                attribution: '© OpenStreetMap contributors'
-              }
-            },
-            layers: [{
-              id: 'simple-tiles',
-              type: 'raster',
-              source: 'raster-tiles',
-              minzoom: 0,
-              maxzoom: 22
-            }]
-          });
-        }
+        setIsLoading(false);
       });
 
       if (map.current) {
         map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-        map.current.addControl(new maplibregl.GlobeControl());
         map.current.addControl(new maplibregl.FullscreenControl(), 'top-right');
-        map.current.addControl(new maplibregl.ScaleControl(), 'bottom-left');
       }
+
     } catch (error) {
       console.error('Failed to initialize map:', error);
       setIsLoading(false);
-      return;
     }
-    
+
     return () => {
       if (map.current) {
         map.current.remove();
+        map.current = null;
       }
     };
-  }, [center, zoom, style, mapTilerKey]);
+  }, [center, zoom, mapTilerKey, addTripVisualizations]); 
 
   return (
     <>
-      <style jsx global>{`
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 20s linear infinite;
-        }
-        
-        .animation-delay-200 {
-          animation-delay: 200ms;
-        }
-        
-        .animation-delay-400 {
-          animation-delay: 400ms;
-        }
-        
-        /* Smooth transition for controls */
-        .maplibregl-control-container {
-          transition: opacity 0.5s ease-in-out;
-        }
-      `}</style>
-      
       <div className="w-full h-full relative overflow-hidden bg-[#000014]">
-        {/* Starry background */}
         <canvas
           ref={starsCanvasRef}
           className="absolute inset-0 w-full h-full"
-          style={{ 
+          style={{
             backgroundColor: '#000014',
             zIndex: 0
           }}
         />
         
-        {/* Globe container */}
-        <div 
-          ref={mapContainer} 
+        <div
+          ref={mapContainer}
           className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${
             mapReady ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ 
+          style={{
             zIndex: 1,
             backgroundColor: 'transparent'
           }}
         />
         
-        {/* Loading screen */}
+        <TripInfo selectedTrip={selectedTrip} onClose={() => setSelectedTrip(null)} />
+        
         <LoadingScreen isLoading={isLoading} />
         
-        {(!mapTilerKey || mapTilerKey === 'YOUR_MAPTILER_KEY') && !isLoading && (
-          <div className="absolute bottom-4 left-4 bg-red-100 border border-red-400 rounded-lg p-3 shadow-md z-10">
-            <div className="text-sm font-medium text-red-800 mb-1">API Key Missing</div>
-            <div className="text-xs text-red-700">
-              Set NEXT_PUBLIC_MAPTILER_API_KEY in your .env.local file
+        {(!process.env.NEXT_PUBLIC_MAPTILER_API_KEY || process.env.NEXT_PUBLIC_MAPTILER_API_KEY === 'YOUR_MAPTILER_KEY') && !isLoading && (
+          <div className="absolute bottom-4 left-4 bg-yellow-100 border border-yellow-400 rounded-lg p-3 shadow-md z-10">
+            <div className="text-sm font-medium text-yellow-800 mb-1">Using Fallback Map</div>
+            <div className="text-xs text-yellow-700">
+              For better visualization, set NEXT_PUBLIC_MAPTILER_API_KEY in your .env.local
             </div>
           </div>
         )}
@@ -274,4 +672,4 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
   );
 };
 
-export default GlobeMap;
+export default GlobeTripVisualization;

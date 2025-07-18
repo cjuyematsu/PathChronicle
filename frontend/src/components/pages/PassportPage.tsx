@@ -55,7 +55,7 @@ const PassportPage = () => {
                     Passport ({visitedCountries.size})
                 </h2>
                 <p className="text-gray-400">
-                    A collection of stamps from every country you've visited.
+                    A collection of stamps from every country you&apos;ve visited.
                 </p>
             </div>
 

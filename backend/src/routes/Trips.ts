@@ -167,4 +167,32 @@ router.get("/locations", async (req, res) => {
 //     }
 // });
 
+router.get("/countries/:userId", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Fetch all trips for the user
+        const tripsResult = await db.query(
+            `
+            SELECT DISTINCT country_code FROM trips 
+            JOIN locations ON trips.origin_location_id = locations.id 
+            WHERE user_id = $1
+            UNION
+            SELECT DISTINCT country_code FROM trips 
+            JOIN locations ON trips.destination_location_id = locations.id 
+            WHERE user_id = $1
+        `,
+            [userId]
+        );
+
+        // Extract unique country codes
+        const countries = tripsResult.rows.map(row => row.country_code).filter(code => code);
+
+        res.json(countries);
+    } catch (error) {
+        console.error("Error fetching countries:", error);
+        res.status(500).json({ error: "Failed to fetch countries" });
+    }
+});
+
 export default router;

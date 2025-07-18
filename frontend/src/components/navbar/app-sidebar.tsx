@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState } from "react"; 
-import { Notebook, PlaneLanding, PlaneTakeoff, Earth } from "lucide-react"
+import { Notebook, PlaneLanding, PlaneTakeoff, Earth, Stamp } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"; 
 import { FlagSelectorPopup } from "../../components/flagSelector";
 import { NavMain, NavItem } from "@/src/components/navbar/nav-main"
@@ -33,6 +33,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Remove Trip",
       url: "/remove-trip",
       icon: PlaneLanding,
+    },
+    {
+      title: "Passports",
+      url: "/countries",
+      icon: Stamp,
     },
   ];
 

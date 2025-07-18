@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10); // Hashes password for security
-        await db.query('INSERT INTO users (email, password, country_code) VALUES ($1, $2, $3)', [email, hashedPassword, countryCode]);
+        await db.query('INSERT INTO users (email, password, icon_code) VALUES ($1, $2, $3)', [email, hashedPassword, countryCode]);
         res.status(201).json({message: 'User registration successful'})
     }
     catch (error) {
@@ -88,7 +88,7 @@ const verifyToken = (req: any, res: any, next: any) => {
 
 router.get('/userdata', verifyToken, async (req: any, res): Promise<void> => {
     try {
-        const result = await db.query('SELECT id, email, country_code FROM users WHERE id = $1', [req.user.id]);
+        const result = await db.query('SELECT id, email, icon_code FROM users WHERE id = $1', [req.user.id]);
         const user = result.rows[0];
 
         if (!user) {
@@ -99,7 +99,7 @@ router.get('/userdata', verifyToken, async (req: any, res): Promise<void> => {
         res.status(200).json({
             name: user.email.split('@')[0], 
             email: user.email,
-            countryCode: user.country_code,
+            countryCode: user.icon_code,
         });
     } catch (error) {
         res.status(500).json({message: 'Error fetching user data'});
@@ -115,7 +115,7 @@ router.post('/update-country', verifyToken, async (req: any, res): Promise<void>
     }
 
     try {
-        await db.query('UPDATE users SET country_code = $1 WHERE id = $2', [countryCode, req.user.id]);
+        await db.query('UPDATE users SET icon_code = $1 WHERE id = $2', [countryCode, req.user.id]);
         res.status(200).json({message: 'Country updated successfully'});
     } catch (error) {
         console.error('Update Country Error:', error);

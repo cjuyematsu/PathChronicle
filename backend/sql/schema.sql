@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE IF NOT EXISTS users(
     id serial PRIMARY KEY,
     email varchar(255) UNIQUE NOT NULL,
-    country_code VARCHAR(6),
+    icon_code VARCHAR(6),
     CONSTRAINT unique_user_email UNIQUE (email), -- Ensure unique email
     password VARCHAR(255) NOT NULL,
     name varchar(100),
@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS locations(
     name varchar(255) NOT NULL,
     city varchar(100),
     country varchar(100),
+    country_code varchar(6),
     airport_code varchar(10),
     CONSTRAINT unique_airport_code UNIQUE (airport_code), -- Ensure unique airport code (add other constraints as needed)
     -- For airports (IATA/ICAO codes)

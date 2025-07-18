@@ -1,4 +1,4 @@
-import AddTripComponent from "@/src/components/AddTripPage";
+import AddTripComponent from "@/src/components/pages/AddTripPage";
 
 export default function AddTripPage() {
     return (

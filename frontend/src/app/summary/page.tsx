@@ -1,5 +1,5 @@
 "use client";
-import SummaryComponent from "@/src/components/TripSummaryPage";
+import SummaryComponent from "@/src/components/pages/TripSummaryPage";
 
 export default function AddTripPage() {
     return (

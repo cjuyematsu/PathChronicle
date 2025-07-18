@@ -1,4 +1,4 @@
-import GlobeMap from "../components/tripGlobe";
+import GlobeMap from "../components/pages/GlobePage";
 
 export default function Home() {
     return (

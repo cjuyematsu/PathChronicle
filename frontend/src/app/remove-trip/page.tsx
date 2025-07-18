@@ -1,4 +1,4 @@
-import RemoveTripComponent from "@/src/components/ManageTripsPage";
+import RemoveTripComponent from "@/src/components/pages/ManageTripsPage";
 
 export default function AddTripPage() {
     return (

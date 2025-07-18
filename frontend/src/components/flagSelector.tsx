@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { countries } from '../data/countries'
+import { flags } from '../data/countries'
 
 interface FlagSelectorPopupProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ interface FlagSelectorPopupProps {
 export function FlagSelectorPopup({ isOpen, onClose, onSelectFlag, selectedCode }: FlagSelectorPopupProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredCountries = countries.filter(country =>
+  const filteredCountries = flags.filter(country =>
     country.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

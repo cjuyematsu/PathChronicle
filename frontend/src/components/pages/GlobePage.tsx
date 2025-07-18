@@ -289,6 +289,77 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    const actualMapTilerKey = mapTilerKey === 'YOUR_MAPTILER_KEY' ? process.env.NEXT_PUBLIC_MAPTILER_API_KEY : mapTilerKey;
+    const hasValidKey = actualMapTilerKey && actualMapTilerKey !== 'YOUR_MAPTILER_KEY';
+
+    try {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: hasValidKey
+          ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${actualMapTilerKey}`
+          : {
+              version: 8,
+              sources: {
+                'raster-tiles': {
+                  type: 'raster',
+                  tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: '© OpenStreetMap contributors'
+                }
+              },
+              layers: [{
+                id: 'simple-tiles',
+                type: 'raster',
+                source: 'raster-tiles',
+                minzoom: 0,
+                maxzoom: 22
+              }]
+            },
+        center: center,
+        zoom: zoom,
+        projection: 'globe',
+        renderWorldCopies: false,
+        antialias: true,
+        preserveDrawingBuffer: true
+      } as maplibregl.MapOptions);
+
+      map.current.on('load', () => {
+        console.log('Map fully loaded');
+
+        if (map.current && 'setProjection' in map.current) {
+          try {
+            (map.current).setProjection({ type: 'globe' });
+          } catch {
+            console.log('Globe projection not supported');
+          }
+        }
+
+        addTripVisualizations();
+        setMapReady(true);
+        setIsLoading(false);
+      });
+
+      if (map.current) {
+        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+        map.current.addControl(new maplibregl.FullscreenControl(), 'top-right');
+      }
+
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+      setIsLoading(false);
+    }
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, []);
+
   const addTripVisualizations = useCallback(() => {
     if (!map.current) return;
 
@@ -560,77 +631,6 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
       console.error('Error adding trip visualizations:', error);
     }
   }, [trips]);
-
-  useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-
-    const actualMapTilerKey = mapTilerKey === 'YOUR_MAPTILER_KEY' ? process.env.NEXT_PUBLIC_MAPTILER_API_KEY : mapTilerKey;
-    const hasValidKey = actualMapTilerKey && actualMapTilerKey !== 'YOUR_MAPTILER_KEY';
-
-    try {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: hasValidKey
-          ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${actualMapTilerKey}`
-          : {
-              version: 8,
-              sources: {
-                'raster-tiles': {
-                  type: 'raster',
-                  tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                  tileSize: 256,
-                  attribution: '© OpenStreetMap contributors'
-                }
-              },
-              layers: [{
-                id: 'simple-tiles',
-                type: 'raster',
-                source: 'raster-tiles',
-                minzoom: 0,
-                maxzoom: 22
-              }]
-            },
-        center: center,
-        zoom: zoom,
-        projection: 'globe',
-        renderWorldCopies: false,
-        antialias: true,
-        preserveDrawingBuffer: true
-      } as maplibregl.MapOptions);
-
-      map.current.on('load', () => {
-        console.log('Map fully loaded');
-
-        if (map.current && 'setProjection' in map.current) {
-          try {
-            (map.current).setProjection({ type: 'globe' });
-          } catch {
-            console.log('Globe projection not supported');
-          }
-        }
-
-        addTripVisualizations();
-        setMapReady(true);
-        setIsLoading(false);
-      });
-
-      if (map.current) {
-        map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-        map.current.addControl(new maplibregl.FullscreenControl(), 'top-right');
-      }
-
-    } catch (error) {
-      console.error('Failed to initialize map:', error);
-      setIsLoading(false);
-    }
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, [center, zoom, mapTilerKey, addTripVisualizations]); 
 
   return (
     <>

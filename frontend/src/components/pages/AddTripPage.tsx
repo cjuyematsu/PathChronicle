@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { LocationSearchRowWithDisplay } from "@shared/types/location";
-import { TripFormData, TripTypeOption } from "../types";
-import LocationSearch from "./locationSearch";
-import { FormErrors } from "../types";
+import { TripFormData, TripTypeOption } from "../../types";
+import LocationSearch from "../locationSearch";
+import { FormErrors } from "../../types";
 
 import {
     Calendar,

@@ -1,4 +1,3 @@
-"use client";
 import RemoveTripComponent from "@/src/components/ManageTripsPage";
 
 export default function AddTripPage() {

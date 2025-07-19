@@ -25,7 +25,7 @@ export interface FormErrors {
 
 // Trip type option interface
 export interface TripTypeOption {
-    value: "flight" | "train" | "bus" | "car" | "ferry" | "other";
+    value: TripType;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
 }
@@ -43,11 +43,11 @@ export interface Trip {
     id: number;
     user_id: number;
     name: string | null;
-    trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+    trip_type: TripType;
     origin_location_id: number;
     destination_location_id: number;
-    departure_date: string | null; // or Date if you parse it
-    arrival_date: string | null; // or Date if you parse it
+    departure_date: string | null;
+    arrival_date: string | null;
     departure_time: string | null;
     arrival_time: string | null;
     flight_number: string | null;
@@ -57,8 +57,8 @@ export interface Trip {
     distance_km: number | null;
     duration_minutes: number | null;
     notes: string | null;
-    created_at: string; // or Date
-    updated_at: string; // or Date
+    created_at: string; 
+    updated_at: string; 
 }
 
 export interface ExtendedLocationSearchRow extends LocationSearchRowWithDisplay {
@@ -115,7 +115,7 @@ export interface Location {
 export interface GlobeLine {
     id: number;
     name: string;
-    trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+    trip_type: TripType;
     origin: Location;
     destination: Location;
     departure_date: string;
@@ -126,7 +126,7 @@ export interface GlobeLine {
 export interface RawTripData {
     id: number;
     name: string;
-    trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+    trip_type: TripType;
     origin_name: string;
     origin_lon: number;
     origin_lat: number;
@@ -144,7 +144,7 @@ export interface ManageTripType {
     id: number;
     user_id: number;
     name: string | null;
-    trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+    trip_type: TripType;
     origin_location_id: number;
     destination_location_id: number;
     departure_date: string | null;

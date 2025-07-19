@@ -4,56 +4,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAuth } from '@/src/context/AuthContext';
-
-interface RawTripData {
-  id: number;
-  name: string;
-  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
-  origin_name: string;
-  origin_lon: number;
-  origin_lat: number;
-  origin_city: string;
-  destination_name: string;
-  destination_lon: number;
-  destination_lat: number;
-  destination_city: string;
-  departure_date: string;
-  airline?: string | null;
-  operator?: string | null;
-}
-
-interface Location {
-  name: string;
-  coordinates: [number, number];
-  city: string;
-}
-
-interface Trip {
-  id: number;
-  name: string;
-  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
-  origin: Location;
-  destination: Location;
-  departure_date: string;
-  airline?: string;
-  operator?: string;
-}
-
-interface Star {
-  x: number;
-  y: number;
-  size: number;
-  brightness: number;
-  twinkleSpeed: number;
-  twinklePhase: number;
-}
+import { GlobeLine, Star, RawTripData } from '@/src/types';
 
 interface LoadingScreenProps {
   isLoading: boolean;
 }
 
 interface TripInfoProps {
-  selectedTrip: Trip | null;
+  selectedTrip: GlobeLine | null;
   onClose: () => void;
 }
 
@@ -82,7 +40,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
 const TripInfo: React.FC<TripInfoProps> = ({ selectedTrip, onClose }) => {
   if (!selectedTrip) return null;
 
-  const tripTypeIcons: Record<Trip['trip_type'], string> = {
+  const tripTypeIcons: Record<GlobeLine['trip_type'], string> = {
     flight: "✈️",
     train: "🚂",
     bus: "🚌",
@@ -145,8 +103,8 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [selectedTrip, setSelectedTrip] = useState<GlobeLine | null>(null);
+  const [trips, setTrips] = useState<GlobeLine[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -162,7 +120,7 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
           const rawData = await response.json();
 
           // Format the data as before
-          const formattedTrips: Trip[] = rawData.map((trip: RawTripData) => ({
+          const formattedTrips: GlobeLine[] = rawData.map((trip: RawTripData) => ({
             id: trip.id,
             name: trip.name,
             trip_type: trip.trip_type,

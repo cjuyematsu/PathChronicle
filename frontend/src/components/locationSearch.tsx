@@ -4,20 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { LocationType, LocationSearchRowWithDisplay } from "@shared/types/location";
 import { Search, MapPin, Plane, Train, Building, Bus, Ship } from "lucide-react";
 import Loading from "./loading";
-
-interface ApiLocationResult {
-    id?: number;
-    name: string;
-    city: string;
-    country: string;
-    country_code?: string;
-    code?: string;
-    location_type: LocationType;
-    latitude?: number;
-    longitude?: number;
-    from_db?: boolean;
-    osm_id?: string;
-}
+import { ApiLocationResult } from "../types";
 
 interface LocationSearchProps {
     onLocationSelect: (location: LocationSearchRowWithDisplay) => void;

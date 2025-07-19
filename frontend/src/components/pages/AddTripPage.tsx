@@ -3,36 +3,10 @@
 import { useState } from "react";
 import { LocationSearchRowWithDisplay } from "@shared/types/location";
 import LocationSearch from "../locationSearch";
+import { TripFormData } from "@/src/types";
 
-import {
-    Calendar,
-    Clock,
-    MapPin,
-    Plane,
-    Train,
-    Bus,
-    Car,
-    Ship,
-    Save,
-    AlertCircle,
-    CheckCircle,
-} from "lucide-react";
-
-interface TripFormData {
-    name: string;
-    trip_type: string;
-    origin_location: LocationSearchRowWithDisplay | null;
-    destination_location: LocationSearchRowWithDisplay | null;
-    departure_date: string;
-    arrival_date: string;
-    departure_time: string;
-    arrival_time: string;
-    flight_number: string;
-    train_number: string;
-    airline: string;
-    operator: string;
-    notes: string;
-}
+import { Calendar, Clock, MapPin, Plane, Train, Bus, Car, Ship, Save, 
+    AlertCircle, CheckCircle } from "lucide-react";
 
 interface FormErrors {
     [key: string]: string | null;

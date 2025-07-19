@@ -3,13 +3,7 @@
 import { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-
-interface User {
-  id: number; 
-  name: string;
-  email: string;
-  countryCode: string;
-}
+import { User } from '@/src/types';
 
 interface AuthContextType {
   user: User | null;

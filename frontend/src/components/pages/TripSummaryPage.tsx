@@ -3,42 +3,10 @@
 import React, { useState } from 'react';
 import { MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, Clock, Globe, TrendingUp } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { ManageTripType } from '@/src/types';
 
-interface Trip {
-  id: number;
-  user_id: number;
-  name: string | null;
-  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
-  origin_location_id: number;
-  destination_location_id: number;
-  departure_date: string | null;
-  arrival_date: string | null;
-  departure_time: string | null;
-  arrival_time: string | null;
-  flight_number: string | null;
-  train_number: string | null;
-  airline: string | null;
-  operator: string | null;
-  distance_km: number | null;
-  duration_minutes: number | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  origin_location?: {
-    id: number;
-    name: string;
-    city?: string;
-    country_code?: string;
-  };
-  destination_location?: {
-    id: number;
-    name: string;
-    city?: string;
-    country_code?: string;
-  };
-}
 
-const mockTrips: Trip[] = [
+const mockTrips: ManageTripType[] = [
   {
     id: 1,
     user_id: 1,
@@ -207,7 +175,7 @@ const getTripIcon = (tripType: string) => {
 };
 
 const SummaryPage = () => {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<ManageTripType[]>([]);
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [selectedYear, setSelectedYear] = useState('all');
   const [loading, setLoading] = useState(true);

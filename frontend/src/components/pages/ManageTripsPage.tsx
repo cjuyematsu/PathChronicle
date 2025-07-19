@@ -2,42 +2,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Trash2, Calendar, MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { ManageTripType } from '@/src/types'; 
 
-interface Trip {
-  id: number;
-  user_id: number;
-  name: string | null;
-  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
-  origin_location_id: number;
-  destination_location_id: number;
-  departure_date: string | null;
-  arrival_date: string | null;
-  departure_time: string | null;
-  arrival_time: string | null;
-  flight_number: string | null;
-  train_number: string | null;
-  airline: string | null;
-  operator: string | null;
-  distance_km: number | null;
-  duration_minutes: number | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  origin_location?: {
-    id: number;
-    name: string;
-    city?: string;
-    country_code?: string;
-  };
-  destination_location?: {
-    id: number;
-    name: string;
-    city?: string;
-    country_code?: string;
-  };
-}
-
-const mockTrips: Trip[] = [
+const mockTrips: ManageTripType[] = [
   {
     id: 1,
     user_id: 1,
@@ -272,12 +239,12 @@ const getTripIcon = (tripType: string) => {
 };
 
 const ManageTripsPage = () => {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<ManageTripType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTripType, setSelectedTripType] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [loading, setLoading] = useState(true);
-  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
+  const [tripToDelete, setTripToDelete] = useState<ManageTripType | null>(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -291,7 +258,7 @@ const ManageTripsPage = () => {
     setTripToDelete(null);
   };
 
-  const getTripDisplayName = (trip: Trip) => {
+  const getTripDisplayName = (trip: ManageTripType) => {
     if (trip.name) return trip.name;
     const origin = trip.origin_location?.name || 'Unknown';
     const destination = trip.destination_location?.name || 'Unknown';

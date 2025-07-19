@@ -1,4 +1,4 @@
-import { LocationSearchRowWithDisplay, TripType } from "@shared/types/location";
+import { LocationSearchRowWithDisplay, TripType, LocationType } from "@shared/types/location";
 
 // Trip form data interface
 export interface TripFormData {
@@ -36,9 +36,9 @@ export interface Location {
     longitude: number;
     country_code?: string;
     city?: string;
-  }
+}
   
-  export interface Trip {
+export interface Trip {
     id: number;
     user_id: number;
     name: string | null;
@@ -58,4 +58,26 @@ export interface Location {
     notes: string | null;
     created_at: string; // or Date
     updated_at: string; // or Date
-  }
+}
+
+export interface ExtendedLocationSearchRow extends LocationSearchRowWithDisplay {
+    from_db?: boolean;
+    latitude?: number;
+    longitude?: number;
+    osm_id?: string;
+    code?: string;
+}
+
+export interface LocationSearchResult {
+    id?: number;
+    name: string;
+    city: string;
+    country: string;
+    country_code?: string;
+    code?: string;
+    location_type: LocationType; 
+    latitude: number;
+    longitude: number;
+    from_db: boolean;
+    osm_id?: string;
+}

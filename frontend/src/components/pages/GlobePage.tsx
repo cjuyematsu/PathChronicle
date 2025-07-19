@@ -3,6 +3,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { useAuth } from '@/src/context/AuthContext';
+
+interface RawTripData {
+  id: number;
+  name: string;
+  trip_type: 'flight' | 'train' | 'bus' | 'car' | 'ferry' | 'other';
+  origin_name: string;
+  origin_lon: number;
+  origin_lat: number;
+  origin_city: string;
+  destination_name: string;
+  destination_lon: number;
+  destination_lat: number;
+  destination_city: string;
+  departure_date: string;
+  airline?: string | null;
+  operator?: string | null;
+}
 
 interface Location {
   name: string;
@@ -45,93 +63,7 @@ interface GlobeTripVisualizationProps {
   mapTilerKey?: string;
 }
 
-const mockTrips: Trip[] = [
-  {
-    id: 1,
-    name: "Summer Europe Tour",
-    trip_type: "flight",
-    origin: {
-      name: "JFK International Airport",
-      coordinates: [-73.7781, 40.6413],
-      city: "New York"
-    },
-    destination: {
-      name: "Charles de Gaulle Airport",
-      coordinates: [2.5479, 49.0097],
-      city: "Paris"
-    },
-    departure_date: "2025-08-15",
-    airline: "Air France"
-  },
-  {
-    id: 2,
-    name: "Asian Business Trip",
-    trip_type: "flight",
-    origin: {
-      name: "Los Angeles International",
-      coordinates: [-118.4085, 33.9425],
-      city: "Los Angeles"
-    },
-    destination: {
-      name: "Narita International Airport",
-      coordinates: [140.3929, 35.7653],
-      city: "Tokyo"
-    },
-    departure_date: "2025-09-01",
-    airline: "Japan Airlines"
-  },
-  {
-    id: 3,
-    name: "South American Adventure",
-    trip_type: "flight",
-    origin: {
-      name: "Miami International",
-      coordinates: [-80.2870, 25.7959],
-      city: "Miami"
-    },
-    destination: {
-      name: "Galeão International",
-      coordinates: [-43.2436, -22.8099],
-      city: "Rio de Janeiro"
-    },
-    departure_date: "2025-10-15",
-    airline: "LATAM"
-  },
-  {
-    id: 4,
-    name: "Trans-Atlantic Journey",
-    trip_type: "flight",
-    origin: {
-      name: "Heathrow Airport",
-      coordinates: [-0.4543, 51.4700],
-      city: "London"
-    },
-    destination: {
-      name: "Sydney Airport",
-      coordinates: [151.1772, -33.9399],
-      city: "Sydney"
-    },
-    departure_date: "2025-11-20",
-    airline: "Qantas"
-  },
-  {
-    id: 5,
-    name: "Nordic Express",
-    trip_type: "train",
-    origin: {
-      name: "Stockholm Central",
-      coordinates: [18.0686, 59.3293],
-      city: "Stockholm"
-    },
-    destination: {
-      name: "Oslo Central",
-      coordinates: [10.7522, 59.9139],
-      city: "Oslo"
-    },
-    departure_date: "2025-07-10",
-    operator: "SJ"
-  }
-];
+
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
   return (
@@ -214,7 +146,49 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [trips] = useState<Trip[]>(mockTrips);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const fetchTrips = async () => {
+        setIsLoading(true);
+        try {
+
+          const response = await fetch(`/api/trips/user/${user.id}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch trips: ${response.statusText}`);
+          }
+          const rawData = await response.json();
+
+          // Format the data as before
+          const formattedTrips: Trip[] = rawData.map((trip: RawTripData) => ({
+            id: trip.id,
+            name: trip.name,
+            trip_type: trip.trip_type,
+            origin: { name: trip.origin_name, coordinates: [trip.origin_lon, trip.origin_lat], city: trip.origin_city },
+            destination: { name: trip.destination_name, coordinates: [trip.destination_lon, trip.destination_lat], city: trip.destination_city },
+            departure_date: trip.departure_date,
+            airline: trip.airline,
+            operator: trip.operator,
+          }));
+          
+          // Save the formatted data into our component's state
+          setTrips(formattedTrips);
+
+        } catch (error) {
+          console.error("Error fetching trips:", error);
+          setTrips([]); 
+        }
+      };
+
+      fetchTrips();
+    } else {
+        // If there's no user, we can stop loading and show an empty map
+        setIsLoading(false);
+        setTrips([]);
+    }
+  }, [user]); 
 
   useEffect(() => {
     const canvas = starsCanvasRef.current;
@@ -327,8 +301,6 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
       } as maplibregl.MapOptions);
 
       map.current.on('load', () => {
-        console.log('Map fully loaded');
-
         if (map.current && 'setProjection' in map.current) {
           try {
             (map.current).setProjection({ type: 'globe' });
@@ -337,7 +309,7 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
           }
         }
 
-        addTripVisualizations();
+        // addTripVisualizations();
         setMapReady(true);
         setIsLoading(false);
       });
@@ -631,6 +603,12 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
       console.error('Error adding trip visualizations:', error);
     }
   }, [trips]);
+
+  useEffect(() => {
+    if (mapReady && trips.length > 0 && map.current && !map.current.getSource('trip-routes')) {
+      addTripVisualizations();
+    }
+}, [mapReady, trips, addTripVisualizations]);
 
   return (
     <>

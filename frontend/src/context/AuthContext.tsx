@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
 interface User {
+  id: number; 
   name: string;
   email: string;
   countryCode: string;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const fetchUser = useCallback(async () => {
@@ -30,15 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       try {
         const response = await fetch('/api/auth/userdata', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch user data');
         const userData: User = await response.json();
         setUser(userData);
       } catch (e) {
@@ -47,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -54,52 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser]);
 
   const signup = async (email: string, password: string, countryCode: string) => {
-    try {
-      const response = await fetch('/api/auth/signup', {
+    const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, countryCode }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
-      }
-      
-      alert('Signup successful! Please sign in.');
-      
-    } catch (error) {
-      console.error(error);
-      alert((error as Error).message);
-    }
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Signup failed');
+    alert('Signup successful! Please sign in.');
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch('/api/auth/signin', {
+    const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-      
-      Cookies.set('auth-token', data.token, { expires: 1, secure: true, sameSite: 'strict' });
-      
-      await fetchUser();
-      
-      router.push('/');
-    } catch (error) {
-      console.error(error);
-      alert((error as Error).message);
-    }
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Login failed');
+    Cookies.set('auth-token', data.token, { expires: 1, secure: true, sameSite: 'strict' });
+    await fetchUser();
+    router.push('/');
   };
-
+  
   const updateUserCountry = async (countryCode: string) => {
     const token = Cookies.get('auth-token');
     if (!token) {
@@ -116,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ countryCode }),
       });
 
-      // Check if the response is JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text();
@@ -152,16 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const value = { user, isAuthenticated: !!user, signup, login, logout, updateUserCountry };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
-      signup, 
-      login, 
-      logout,
-      updateUserCountry 
-    }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

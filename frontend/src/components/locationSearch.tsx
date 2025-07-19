@@ -241,7 +241,7 @@ const LocationSearch = ({
         if (initialValue && initialValue !== query) {
             setQuery(initialValue);
         }
-    }, [initialValue]);
+    }, [initialValue, query]);
 
     return (
         <div className="relative w-full">

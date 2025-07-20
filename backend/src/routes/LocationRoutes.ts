@@ -2,6 +2,7 @@ import express from "express";
 import db from "../lib/db";
 import axios from "axios";
 import NodeCache from "node-cache";
+import { passports } from "../data/countryMap";
 
 const router = express.Router();
 
@@ -325,9 +326,11 @@ router.post("/save", async (req, res) => {
             location_type,
             latitude,
             longitude,
-            osm_id
+            country_code
         } = req.body;
 
+        const finalCountryCode = country_code || (country ? passports[country as keyof typeof passports] : null) || null;        
+        
         const client = await db.connect();
         
         try {
@@ -355,11 +358,13 @@ router.post("/save", async (req, res) => {
                     country, 
                     location_type, 
                     coordinates,
+                    country_code,
                     created_at,
                     updated_at
                 ) VALUES (
                     $1, $2, $3, $4, 
                     ST_SetSRID(ST_MakePoint($5, $6), 4326),
+                    $7,
                     NOW(),
                     NOW()
                 ) RETURNING id
@@ -369,7 +374,8 @@ router.post("/save", async (req, res) => {
                 country || null, 
                 location_type, 
                 longitude, 
-                latitude
+                latitude, 
+                finalCountryCode
             ]);
 
             await client.query('COMMIT');

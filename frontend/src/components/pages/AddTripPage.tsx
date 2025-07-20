@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LocationSearchRowWithDisplay } from "@shared/types/location";
 import LocationSearch from "../locationSearch";
 import { TripFormData } from "@/src/types";
@@ -42,6 +42,13 @@ const AddTripPage = ({ userId }: TripFormProps) => {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
     const [errors, setErrors] = useState<FormErrors>({});
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setLoading(false);
+        }, 500);
+    });
 
     const tripTypes: TripTypeOption[] = [
         { value: "flight", label: "Flight", icon: Plane },
@@ -194,11 +201,20 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                 return null;
         }
     };
+    if (loading) {
+        return (
+            <div className="w-full h-full p-6 bg-slate-900 text-white">
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-full p-6 bg-slate-900 text-white">
             <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-2 py-4">Create New Trip</h2>
+                <h2 className="text-3xl font-bold mb-2 py-6">Create New Trip</h2>
                 <p className="text-gray-300">Add details about your upcoming or past journey.</p>
             </div>
             <div className="space-y-6">

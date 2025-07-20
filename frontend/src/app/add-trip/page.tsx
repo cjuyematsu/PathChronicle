@@ -9,13 +9,17 @@ const AddTripContainerPage = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
-        Loading...
-      </div>
+      <div></div>
     );
   }
 
-  return <AddTripPage userId={user.id} />;
+  return (
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+            <div className="relative w-full">
+                <AddTripPage userId={user.id} />
+            </div>
+    </div>
+  );
 };
 
 export default AddTripContainerPage;

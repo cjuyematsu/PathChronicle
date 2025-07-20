@@ -181,3 +181,31 @@ export interface User {
     email: string;
     countryCode: string;
   }
+
+export interface TripApiResponse {
+    id: number;
+    user_id: number;
+    name: string | null;
+    trip_type: string;
+    origin_location_id: number;
+    destination_location_id: number;
+    departure_date: string | null;
+    arrival_date: string | null;
+    departure_time: string | null;
+    arrival_time: string | null;
+    flight_number: string | null;
+    train_number: string | null;
+    airline: string | null;
+    operator: string | null;
+    distance_km: string;
+    duration_minutes: number | null;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+    origin_name: string;
+    origin_city: string;
+    origin_country: string;
+    destination_name: string;
+    destination_city: string;
+    destination_country: string;
+  }

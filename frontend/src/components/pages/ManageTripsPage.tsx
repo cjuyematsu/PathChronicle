@@ -2,134 +2,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Trash2, Calendar, MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, AlertTriangle } from 'lucide-react';
-import { ManageTripType } from '@/src/types'; 
-
-const mockTrips: ManageTripType[] = [
-  {
-    id: 1,
-    user_id: 1,
-    name: "Business Trip to Tokyo",
-    trip_type: 'flight',
-    origin_location_id: 1,
-    destination_location_id: 2,
-    departure_date: '2024-03-15',
-    arrival_date: '2024-03-16',
-    departure_time: '14:30',
-    arrival_time: '09:45',
-    flight_number: 'AA123',
-    train_number: null,
-    airline: 'American Airlines',
-    operator: null,
-    distance_km: 10800,
-    duration_minutes: 795,
-    notes: 'Remember to bring presentation materials',
-    created_at: '2024-02-01T10:00:00Z',
-    updated_at: '2024-02-01T10:00:00Z',
-    origin_location: {
-      id: 1,
-      name: 'John F. Kennedy International Airport',
-      city: 'New York',
-      country_code: 'US'
-    },
-    destination_location: {
-      id: 2,
-      name: 'Tokyo Haneda Airport',
-      city: 'Tokyo',
-      country_code: 'JP'
-    }
-  },
-  {
-    id: 2,
-    user_id: 1,
-    name: "Train to Paris",
-    trip_type: 'train',
-    origin_location_id: 3,
-    destination_location_id: 4,
-    departure_date: '2024-04-20',
-    arrival_date: '2024-04-20',
-    departure_time: '08:15',
-    arrival_time: '10:45',
-    flight_number: null,
-    train_number: 'TGV2307',
-    airline: null,
-    operator: 'SNCF',
-    distance_km: 450,
-    duration_minutes: 150,
-    notes: null,
-    created_at: '2024-03-01T14:30:00Z',
-    updated_at: '2024-03-01T14:30:00Z',
-    origin_location: {
-      id: 3,
-      name: 'London St Pancras',
-      city: 'London',
-      country_code: 'GB'
-    },
-    destination_location: {
-      id: 4,
-      name: 'Paris Gare du Nord',
-      city: 'Paris',
-      country_code: 'FR'
-    }
-  },
-  {
-    id: 3,
-    user_id: 1,
-    name: "Road Trip to Mountains",
-    trip_type: 'car',
-    origin_location_id: 5,
-    destination_location_id: 6,
-    departure_date: '2024-05-10',
-    arrival_date: '2024-05-10',
-    departure_time: '06:00',
-    arrival_time: '13:30',
-    flight_number: null,
-    train_number: null,
-    airline: null,
-    operator: null,
-    distance_km: 650,
-    duration_minutes: 450,
-    notes: 'Scenic route through countryside',
-    created_at: '2024-04-15T09:00:00Z',
-    updated_at: '2024-04-15T09:00:00Z',
-    origin_location: {
-      id: 5,
-      name: 'Denver International Airport',
-      city: 'Denver',
-      country_code: 'US'
-    },
-    destination_location: {
-      id: 6,
-      name: 'Aspen',
-      city: 'Aspen',
-      country_code: 'US'
-    }
-  }
-];
-
-const PageLayout = ({ children, title, subtitle }: { 
-  children: React.ReactNode; 
-  title: string; 
-  subtitle?: string; 
-}) => (
-  <div className="min-h-screen bg-slate-900 flex flex-col">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">{title}</h1>
-        {subtitle && <p className="text-slate-400">{subtitle}</p>}
-      </div>
-      <div className="flex-1">
-        {children}
-      </div>
-    </div>
-  </div>
-);
+import { ManageTripType, TripApiResponse } from '@/src/types';
+import { useAuth } from '../../context/AuthContext';
 
 const Card = ({ children, className = "", hover = false }: { 
   children: React.ReactNode; 
   className?: string; 
   hover?: boolean; 
 }) => (
-  <div className={`bg-slate-800 border border-slate-700 rounded-lg shadow-sm p-6 ${hover ? 'hover:bg-slate-750 transition-colors' : ''} ${className}`}>
+  <div className={`bg-slate-800 border border-slate-700 rounded-xl p-6 ${hover ? 'hover:bg-slate-750 transition-colors' : ''} ${className}`}>
     {children}
   </div>
 );
@@ -151,7 +32,7 @@ const Button = ({
   className?: string;
   icon?: React.ComponentType<{ className?: string }>;
 }) => {
-  const baseClasses = "rounded-lg font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2";
+  const baseClasses = "rounded-xl font-medium transition-all focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2";
   
   const variantClasses = {
     primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
@@ -162,8 +43,8 @@ const Button = ({
   
   const sizeClasses = {
     sm: "px-3 py-2 text-sm",
-    md: "px-4 py-2",
-    lg: "px-6 py-3 text-lg"
+    md: "px-4 py-3",
+    lg: "px-6 py-4 text-lg"
   };
 
   return (
@@ -191,19 +72,17 @@ const Input = ({
   icon?: React.ComponentType<{ className?: string }>;
   className?: string;
 }) => (
-  <div className={className}>
-    <div className="relative">
-      {Icon && (
-        <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-      )}
-      <input
-        type="text"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-white placeholder-slate-400`}
-      />
-    </div>
+  <div className="relative">
+    {Icon && (
+      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+    )}
+    <input
+      type="text"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-white placeholder-slate-400 ${className}`}
+    />
   </div>
 );
 
@@ -221,7 +100,7 @@ const Select = ({
   <select
     value={value}
     onChange={onChange}
-    className={`px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white ${className}`}
+    className={`px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white ${className}`}
   >
     {children}
   </select>
@@ -229,33 +108,122 @@ const Select = ({
 
 const getTripIcon = (tripType: string) => {
   switch (tripType) {
-    case 'flight': return <Plane className="w-5 h-5 text-white" />;
-    case 'train': return <Train className="w-5 h-5 text-white" />;
-    case 'bus': return <Bus className="w-5 h-5 text-white" />;
-    case 'car': return <Car className="w-5 h-5 text-white" />;
-    case 'ferry': return <Ship className="w-5 h-5 text-white" />;
-    default: return <MoreHorizontal className="w-5 h-5 text-white" />;
+    case 'flight': return <Plane className="w-5 h-5" />;
+    case 'train': return <Train className="w-5 h-5" />;
+    case 'bus': return <Bus className="w-5 h-5" />;
+    case 'car': return <Car className="w-5 h-5" />;
+    case 'ferry': return <Ship className="w-5 h-5" />;
+    default: return <MoreHorizontal className="w-5 h-5" />;
   }
 };
 
 const ManageTripsPage = () => {
+  const { user } = useAuth();
   const [trips, setTrips] = useState<ManageTripType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTripType, setSelectedTripType] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [tripToDelete, setTripToDelete] = useState<ManageTripType | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      setTrips(mockTrips);
+    if (user?.id) {
+      fetchTrips();
+    }
+  }, [user]);
+
+  const fetchTrips = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/trips/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch trips');
+      }
+
+      const trips = await response.json();
+      
+      // Transform backend response to match frontend type
+      const formattedTrips: ManageTripType[] = trips.map((trip: TripApiResponse) => ({
+        id: trip.id,
+        user_id: trip.user_id,
+        name: trip.name,
+        trip_type: trip.trip_type,
+        origin_location_id: trip.origin_location_id,
+        destination_location_id: trip.destination_location_id,
+        departure_date: trip.departure_date,
+        arrival_date: trip.arrival_date,
+        departure_time: trip.departure_time,
+        arrival_time: trip.arrival_time,
+        flight_number: trip.flight_number,
+        train_number: trip.train_number,
+        airline: trip.airline,
+        operator: trip.operator,
+        distance_km: parseFloat(trip.distance_km),
+        duration_minutes: trip.duration_minutes,
+        notes: trip.notes,
+        created_at: trip.created_at,
+        updated_at: trip.updated_at,
+        origin_location: {
+          id: trip.origin_location_id,
+          name: trip.origin_name,
+          city: trip.origin_city,
+          country_code: trip.origin_country,
+        },
+        destination_location: {
+          id: trip.destination_location_id,
+          name: trip.destination_name,
+          city: trip.destination_city,
+          country_code: trip.destination_country,
+        },
+      }));
+      
+      setTrips(formattedTrips);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch trips');
+      console.error('Error fetching trips:', err);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
 
   const deleteTrip = async (tripId: number) => {
-    setTrips(prev => prev.filter(trip => trip.id !== tripId));
-    setTripToDelete(null);
+    if (!user?.id) return;
+    
+    try {
+      setDeleting(true);
+      
+      const response = await fetch(`/api/trips/delete/${tripId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete trip');
+      }
+      
+      setTrips(prev => prev.filter(trip => trip.id !== tripId));
+      setTripToDelete(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete trip');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const getTripDisplayName = (trip: ManageTripType) => {
@@ -271,17 +239,12 @@ const ManageTripsPage = () => {
         trip.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.origin_location?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.destination_location?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.origin_location?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.destination_location?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.origin_location?.country_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.destination_location?.country_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.flight_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.train_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.airline?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.operator?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesType = selectedTripType === 'all' || trip.trip_type === selectedTripType;
-      
       return matchesSearch && matchesType;
     });
 
@@ -301,18 +264,58 @@ const ManageTripsPage = () => {
     return filtered;
   }, [trips, searchTerm, selectedTripType, sortBy]);
 
-  if (loading) {
+  if (!user) {
     return (
-      <PageLayout title="Manage Trips" subtitle="Search and remove trips from your collection">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="w-full h-full p-6 bg-slate-900 text-white">
+        <div className="text-center py-12">
+          <p className="text-slate-400 text-lg">Please log in to view your trips</p>
         </div>
-      </PageLayout>
+      </div>
     );
   }
 
+  if (loading) {
+    return (
+      <div className="w-full h-full p-6 bg-slate-900 text-white">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full h-full p-6 bg-slate-900 text-white">
+        <Card className="max-w-2xl mx-auto">
+          <div className="text-center py-8">
+            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <p className="text-red-400 text-lg mb-4">{error}</p>
+            <Button variant="secondary" onClick={fetchTrips}>
+              Try Again
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (trips.length === 0) {
+    return (
+      <div className="w-full h-full p-6 bg-slate-900 text-white">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-bold text-3xl">Please Add Trips</div>
+        </div>
+      </div>
+    );
+  }
   return (
-    <PageLayout title="Manage Trips" subtitle="Search and remove trips from your collection">
+    <div className="w-full h-full p-6 bg-slate-900 text-white">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2 py-6">Manage Trips</h2>
+        <p className="text-gray-300">Search and remove trips from your collection</p>
+      </div>
+
       <Card className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <Input
@@ -359,7 +362,11 @@ const ManageTripsPage = () => {
         {filteredTrips.length === 0 ? (
           <Card>
             <div className="text-center py-8">
-              <p className="text-slate-400 text-lg">No trips found matching your criteria</p>
+              <p className="text-slate-400 text-lg">
+                {trips.length === 0 
+                  ? "You haven't added any trips yet" 
+                  : "No trips found matching your criteria"}
+              </p>
             </div>
           </Card>
         ) : (
@@ -368,7 +375,7 @@ const ManageTripsPage = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center justify-center w-10 h-10 bg-blue-600/20 rounded-full">
+                    <div className="flex items-center justify-center w-10 h-10 bg-blue-600/20 rounded-full text-white">
                       {getTripIcon(trip.trip_type)}
                     </div>
                     <div>
@@ -479,20 +486,22 @@ const ManageTripsPage = () => {
               <Button
                 variant="secondary"
                 onClick={() => setTripToDelete(null)}
+                disabled={deleting}
               >
                 Cancel
               </Button>
               <Button
                 variant="danger"
                 onClick={() => deleteTrip(tripToDelete.id)}
+                disabled={deleting}
               >
-                Delete
+                {deleting ? 'Deleting...' : 'Delete'}
               </Button>
             </div>
           </Card>
         </div>
       )}
-    </PageLayout>
+    </div>
   );
 };
 

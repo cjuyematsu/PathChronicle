@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapPin, Plane, ChevronDown, ChevronUp, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { countries, getCountryName } from '../../data/countries';
@@ -16,11 +16,8 @@ interface CountryVisit {
 const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisited: boolean }) => {
   return (
     <div className="flex flex-col items-center">
-      {/* Stamp Container */}
       <div className={`relative ${isVisited ? '' : 'opacity-40'}`}>
-        {/* Stamp Background with Perforations */}
         <svg width="140" height="140" viewBox="0 0 140 140" className="relative">
-          {/* Background */}
           <rect 
             x="10" 
             y="10" 
@@ -31,12 +28,10 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
             strokeWidth="2"
           />
           
-          {/* Perforations */}
           <defs>
-            <circle id={`perf-${country.code}`} r="4" fill="#1e293b" />
+            <circle id={`perf-${country.code}`} r="3.1" fill="#1e293b" />
           </defs>
           
-          {/* Top perforations */}
           {Array.from({ length: 8 }).map((_, i) => (
             <use 
               key={`top-${i}`} 
@@ -46,7 +41,6 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
             />
           ))}
           
-          {/* Bottom perforations */}
           {Array.from({ length: 8 }).map((_, i) => (
             <use 
               key={`bottom-${i}`} 
@@ -56,7 +50,6 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
             />
           ))}
           
-          {/* Left perforations */}
           {Array.from({ length: 8 }).map((_, i) => (
             <use 
               key={`left-${i}`} 
@@ -66,7 +59,6 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
             />
           ))}
           
-          {/* Right perforations */}
           {Array.from({ length: 8 }).map((_, i) => (
             <use 
               key={`right-${i}`} 
@@ -77,7 +69,6 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
           ))}
         </svg>
 
-        {/* Flag - Positioned absolutely inside the stamp */}
         <div className="absolute inset-0 flex items-center justify-center" style={{ padding: '25px' }}>
           <div className={`w-full h-full flex items-center justify-center ${!isVisited ? 'grayscale' : ''}`}>
             <span className={`fi fi-${country.code} fis`} style={{ fontSize: '5.5rem' }}></span>
@@ -87,7 +78,6 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
         
       </div>
 
-      {/* Country Name Below Stamp */}
       <p className={`mt-2 text-sm font-medium text-center ${isVisited ? 'text-white' : 'text-slate-500'}`}>
         {country.name}
       </p>
@@ -104,20 +94,13 @@ const PassportPage = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'visited' | 'not-visited'>('visited');
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchVisitedCountries();
-    }
-  }, [user]);
-
-  const fetchVisitedCountries = async () => {
+  const fetchVisitedCountries = useCallback(async () => {
     if (!user?.id) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch visited countries
       const response = await fetch(`/api/trips/countries/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
@@ -129,13 +112,10 @@ const PassportPage = () => {
       }
 
       const countryCodes = await response.json();
-      console.log('Received country codes:', countryCodes); // Debug log
 
-      // Normalize country codes to lowercase for flag-icons
       const normalizedCodes = countryCodes.map((code: string) => code.toLowerCase());
       setVisitedCountries(normalizedCodes);
 
-      // Transform country codes to CountryVisit objects
       const visits = normalizedCodes.map((code: string) => ({
         code: code,
         name: getCountryName(code)
@@ -148,7 +128,13 @@ const PassportPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchVisitedCountries();
+    }
+  }, [user, fetchVisitedCountries]);
 
   const getFilteredCountries = () => {
     if (selectedFilter === 'visited') {
@@ -161,7 +147,6 @@ const PassportPage = () => {
           name: country.name
         }));
     } else {
-      // 'all' - show visited first, then unvisited
       const visited = countryVisits;
       const notVisited = countries
         .filter(country => !visitedCountries.includes(country.code))
@@ -223,14 +208,23 @@ const PassportPage = () => {
   const visitedCount = visitedCountries.length;
   const percentageVisited = totalCountries > 0 ? Math.round((visitedCount / totalCountries) * 100) : 0;
 
+  if (visitedCount === 0) {
+    return (
+        <div className="w-full h-full p-6 bg-slate-900 text-white">
+            <div className="flex items-center justify-center py-12">
+                <div className="text-bold text-3xl">No Countries Visited</div>
+            </div>
+        </div>
+    )
+
+  }
+
   return (
     <div className="w-full min-h-screen p-6 bg-slate-900 text-white">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 py-6">Passport ({visitedCount})</h1>
           
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
               <div className="flex items-center justify-between">
@@ -263,7 +257,6 @@ const PassportPage = () => {
             </div>
           </div>
 
-          {/* Filter Buttons */}
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => setSelectedFilter('visited')}
@@ -298,7 +291,6 @@ const PassportPage = () => {
           </div>
         </div>
 
-        {/* Passport Stamps Grid */}
         <div className="bg-slate-800 rounded-2xl p-8">
           {visibleCountries.length === 0 ? (
             <div className="text-center py-12">
@@ -325,7 +317,6 @@ const PassportPage = () => {
                 })}
               </div>
 
-              {/* Show More/Less Button */}
               {displayedCountries.length > 12 && (
                 <div className="mt-8 text-center">
                   <button

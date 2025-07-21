@@ -20,23 +20,32 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        if (!email || !password || !countryCode) {
-          alert('Please fill in all fields to sign up.');
-          return;
+        if (isSignUp) {
+            if (!email || !password || !countryCode) {
+                alert('Please fill in all fields to sign up.');
+                setIsLoading(false);
+                return;
+            }
+            await signup(email, password, countryCode);
         }
-        await signup(email, password, countryCode);
-        setIsSignUp(false);
-        setEmail('');
-        setPassword('');
-      } else {
-        if (!email || !password) {
-          alert('Please enter your email and password to sign in.');
-          return;
+        else {
+            if (!email || !password) {
+                alert('Please enter your email and password to sign in.');
+                setIsLoading(false);
+                return;
+            }
+            await login(email, password);
         }
-        await login(email, password);
-      }
-    } finally {
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            alert(error.message);
+        }
+        else {
+            alert('An unexpected error occurred. Please try again later.');
+        }
+    }
+    finally {
       setIsLoading(false);
     }
   };

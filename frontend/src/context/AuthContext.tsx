@@ -51,8 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, countryCode }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Signup failed');
-    alert('Signup successful! Please sign in.');
+    if (!response.ok) {
+      throw new Error(data.message || 'Signup failed');
+    }
+    Cookies.set('auth-token', data.token, { expires: 1, secure: true, sameSite: 'strict' });
+
+    await fetchUser();
+
+    router.push('/');
   };
 
   const login = async (email: string, password: string) => {

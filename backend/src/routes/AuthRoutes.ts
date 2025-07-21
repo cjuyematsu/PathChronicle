@@ -16,10 +16,31 @@ router.post("/signup", async (req, res) => {
     }
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query('INSERT INTO users (email, password, icon_code) VALUES ($1, $2, $3)', [email, hashedPassword, countryCode]);
-        res.status(201).json({ message: 'User registration successful' });
-    } catch (error) {
+        const newUserResult = await db.query(
+            'INSERT INTO users (email, password, icon_code) VALUES ($1, $2, $3) RETURNING id, email, icon_code',
+             [email, hashedPassword, countryCode]
+        );
+        const newUser = newUserResult.rows[0];
+
+        const userPayload = {
+            id: newUser.id,
+            name: newUser.email.split('@')[0],
+            email: newUser.email,
+            countryCode: newUser.icon_code,
+        };
+
+        const tokenPayload = { id: newUser.id, email: newUser.email };
+        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || 'path-to-logged-in', { expiresIn: '1h' });
+
+
+        res.status(201).json({ token, user: userPayload, message: 'User registered successfully' });
+    } catch (error: any) {
         console.error('Signup Error:', error);
+
+        if (error.code === '23505') {
+            return res.status(409).json({ message: 'An account with this email already exists.' });
+        }
+
         res.status(500).json({ message: 'Error registering user' });
     }
 });
@@ -40,6 +61,8 @@ router.post('/signin', async (req, res) => {
         res.status(200).json({ message: 'Logged in Successfully', token });
     } catch (error) {
         console.error('Login Error:', error);
+        console.error("--- ERROR IN SIGN-IN ROUTE ---");
+        console.error(error); // This will print the full error to your Docker logs
         res.status(500).json({message: 'Error Logging in'});
     }
 });

@@ -25,6 +25,19 @@ app.use(
 
 app.use(express.json());
 
+app.get("/health", (req, res) => {
+    res.json({ 
+        status: "ok", 
+        message: "Backend is running",
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Add a test endpoint
+app.get("/api/test", (req, res) => {
+    res.json({ message: "API is working!" });
+});
+
 async function startServer() {
     try {
         // Mount routes
@@ -32,8 +45,10 @@ async function startServer() {
         app.use("/api/trips", tripRoutes);
         app.use("/api/auth", authRoutes);
 
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        // IMPORTANT: Listen on 0.0.0.0 for external access
+        app.listen(PORT, "0.0.0.0", () => {
+            console.log(`Server running on 0.0.0.0:${PORT}`);
+            console.log(`Health check: http://0.0.0.0:${PORT}/health`);
         });
     } catch (error) {
         console.error("Failed to start server:", error);

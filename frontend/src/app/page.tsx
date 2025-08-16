@@ -1,3 +1,9 @@
+import GlobeMap from "../components/pages/GlobePage";
+
 export default function Home() {
-    return <div>Home Page</div>;
+    return (
+        <main className="h-screen w-full">
+            <GlobeMap />
+        </main>
+    );
 }

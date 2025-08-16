@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        /* Language and Environment */
+        "target": "ES2020",
+        "lib": ["ES2020"],
+
+        /* Modules */
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+
+        /* Type Checking */
+        "strict": true,
+        "skipLibCheck": true,
+
+        /* Emit */
+        "declaration": true,
+        "sourceMap": true,
+        "removeComments": true,
+
+        /* Interop Constraints */
+        "isolatedModules": true
+    }
+}

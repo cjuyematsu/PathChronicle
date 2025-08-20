@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Trash2, Calendar, MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, AlertTriangle } from 'lucide-react';
 import { ManageTripType, TripApiResponse } from '@/src/types';
 import { useAuth } from '../../context/AuthContext';
+import { apiWrapper } from '@/src/utils/apiWrapper';
 
 const Card = ({ children, className = "", hover = false }: { 
   children: React.ReactNode; 
@@ -118,7 +119,7 @@ const getTripIcon = (tripType: string) => {
 };
 
 const ManageTripsPage = () => {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [trips, setTrips] = useState<ManageTripType[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTripType, setSelectedTripType] = useState('all');
@@ -128,74 +129,111 @@ const ManageTripsPage = () => {
   const [tripToDelete, setTripToDelete] = useState<ManageTripType | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchTrips();
-    }
-  }, [user]);
-
-  const fetchTrips = async () => {
+   const fetchTrips = useCallback(async () => {
     if (!user?.id) return;
     
+    console.log('ManageTrips - Fetching trips for user:', user.id, 'isGuest:', isGuest);
+    
     try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`/api/trips/user/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch trips');
-      }
-
-      const trips = await response.json();
-      
-      // Transform backend response to match frontend type
-      const formattedTrips: ManageTripType[] = trips.map((trip: TripApiResponse) => ({
-        id: trip.id,
-        user_id: trip.user_id,
-        name: trip.name,
-        trip_type: trip.trip_type,
-        origin_location_id: trip.origin_location_id,
-        destination_location_id: trip.destination_location_id,
-        departure_date: trip.departure_date,
-        arrival_date: trip.arrival_date,
-        departure_time: trip.departure_time,
-        arrival_time: trip.arrival_time,
-        flight_number: trip.flight_number,
-        train_number: trip.train_number,
-        airline: trip.airline,
-        operator: trip.operator,
-        distance_km: parseFloat(trip.distance_km),
-        duration_minutes: trip.duration_minutes,
-        notes: trip.notes,
-        created_at: trip.created_at,
-        updated_at: trip.updated_at,
-        origin_location: {
-          id: trip.origin_location_id,
-          name: trip.origin_name,
-          city: trip.origin_city,
-          country_code: trip.origin_country,
-        },
-        destination_location: {
-          id: trip.destination_location_id,
-          name: trip.destination_name,
-          city: trip.destination_city,
-          country_code: trip.destination_country,
-        },
-      }));
-      
-      setTrips(formattedTrips);
+        setLoading(true);
+        setError(null);
+        
+        const trips = await apiWrapper.fetchTrips({
+            isGuest: isGuest,
+            userId: user.id
+        });
+        
+        console.log('ManageTrips - Received trips:', trips);
+        
+        const formattedTrips: ManageTripType[] = trips.map((trip: TripApiResponse) => {
+            if (isGuest) {
+                return {
+                    id: trip.id,
+                    user_id: trip.user_id,
+                    name: trip.name,
+                    trip_type: trip.trip_type,
+                    origin_location_id: trip.origin_location_id,
+                    destination_location_id: trip.destination_location_id,
+                    departure_date: trip.departure_date,
+                    arrival_date: trip.arrival_date,
+                    departure_time: trip.departure_time,
+                    arrival_time: trip.arrival_time,
+                    flight_number: trip.flight_number,
+                    train_number: trip.train_number,
+                    airline: trip.airline,
+                    operator: trip.operator,
+                    distance_km: parseFloat(trip.distance_km || '0'),
+                    duration_minutes: trip.duration_minutes || 0,
+                    notes: trip.notes,
+                    created_at: trip.created_at,
+                    updated_at: trip.updated_at,
+                    // Create location objects from flat data
+                    origin_location: {
+                        id: trip.origin_location_id,
+                        name: trip.origin_name || 'Unknown',
+                        city: trip.origin_city || '',
+                        country_code: trip.origin_country || '',
+                    },
+                    destination_location: {
+                        id: trip.destination_location_id,
+                        name: trip.destination_name || 'Unknown',
+                        city: trip.destination_city || '',
+                        country_code: trip.destination_country || '',
+                    },
+                };
+            } else {
+                // For regular trips from the API
+                return {
+                    id: trip.id,
+                    user_id: trip.user_id,
+                    name: trip.name,
+                    trip_type: trip.trip_type,
+                    origin_location_id: trip.origin_location_id,
+                    destination_location_id: trip.destination_location_id,
+                    departure_date: trip.departure_date,
+                    arrival_date: trip.arrival_date,
+                    departure_time: trip.departure_time,
+                    arrival_time: trip.arrival_time,
+                    flight_number: trip.flight_number,
+                    train_number: trip.train_number,
+                    airline: trip.airline,
+                    operator: trip.operator,
+                    distance_km: parseFloat(trip.distance_km),
+                    duration_minutes: trip.duration_minutes,
+                    notes: trip.notes,
+                    created_at: trip.created_at,
+                    updated_at: trip.updated_at,
+                    origin_location: {
+                        id: trip.origin_location_id,
+                        name: trip.origin_name,
+                        city: trip.origin_city,
+                        country_code: trip.origin_country,
+                    },
+                    destination_location: {
+                        id: trip.destination_location_id,
+                        name: trip.destination_name,
+                        city: trip.destination_city,
+                        country_code: trip.destination_country,
+                    },
+                };
+            }
+        });
+        
+        console.log('ManageTrips - Formatted trips:', formattedTrips);
+        setTrips(formattedTrips);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch trips');
-      console.error('Error fetching trips:', err);
+        console.error('ManageTrips - Error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch trips');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+  }, [user, isGuest]); 
+
+  useEffect(() => {
+      if (user?.id) {
+        fetchTrips();
+      }
+    }, [user, fetchTrips]);
 
   const deleteTrip = async (tripId: number) => {
     if (!user?.id) return;
@@ -203,14 +241,10 @@ const ManageTripsPage = () => {
     try {
       setDeleting(true);
       
-      const response = await fetch(`/api/trips/delete/${tripId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
-        },
-        body: JSON.stringify({ userId: user.id }),
-      });
+      const response = await apiWrapper.deleteTrip(tripId, {
+            isGuest: isGuest,
+            userId: user.id
+        });
 
       if (!response.ok) {
         const error = await response.json();

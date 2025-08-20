@@ -2,19 +2,21 @@
 
 import * as React from "react"
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, LogOut, Flag } from "lucide-react"
+import { ChevronDown, LogOut, Flag, UserPlus } from "lucide-react"
 
 interface NavUserProps {
   user: {
     name: string;
     email: string;
     countryCode: string;
+    isGuest?: boolean;
   };
   onLogout: () => void;
   onChangeCountry: () => void;
+  onCreateAccount?: () => void;
 }
 
-export function NavUser({ user, onLogout, onChangeCountry }: NavUserProps) {
+export function NavUser({ user, onLogout, onChangeCountry, onCreateAccount }: NavUserProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -86,6 +88,13 @@ export function NavUser({ user, onLogout, onChangeCountry }: NavUserProps) {
     onChangeCountry();
   };
 
+  const handleCreateAccount = () => {
+    setIsOpen(false);
+    if (onCreateAccount) {
+      onCreateAccount();
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -104,7 +113,7 @@ export function NavUser({ user, onLogout, onChangeCountry }: NavUserProps) {
                 {user.name}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {user.email}
+                {user.isGuest ? 'Guest Mode' : user.email}
               </div>
             </div>
           )}
@@ -125,9 +134,26 @@ export function NavUser({ user, onLogout, onChangeCountry }: NavUserProps) {
               {user.name}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {user.email}
+              {user.isGuest ? 'Guest Mode - Data is temporary' : user.email}
             </div>
           </div>
+          
+          {user.isGuest && onCreateAccount && (
+            <button
+              onClick={handleCreateAccount}
+              className="flex items-center gap-3 w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <UserPlus className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <div className="flex-1">
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                  Create Account
+                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Save your trips permanently
+                </div>
+              </div>
+            </button>
+          )}
                      
           <button
             onClick={handleChangeCountry}
@@ -147,7 +173,7 @@ export function NavUser({ user, onLogout, onChangeCountry }: NavUserProps) {
             className="flex items-center gap-3 w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-sm">Logout</span>
+            <span className="text-sm">{user.isGuest ? 'Exit Guest Mode' : 'Logout'}</span>
           </button>
         </div>
       )}

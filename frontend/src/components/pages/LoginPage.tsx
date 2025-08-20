@@ -9,11 +9,28 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [countryCode, setCountryCode] = useState('us');
+  const [countryCode, setCountryCode] = useState('xx');
   const [showFlagSelector, setShowFlagSelector] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   
-  const { login, signup } = useAuth();
+  const { login, signup, loginAsGuest } = useAuth();
+
+  const handleGuestLogin = () => {
+    setIsGuestLoading(true);
+    try {
+      // This function will trigger a navigation.
+      loginAsGuest();
+    } catch (error) {
+      // If loginAsGuest throws an error, we'll catch it here.
+      console.error(error);
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+      // Only turn off the spinner if there was an error.
+      setIsGuestLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +163,37 @@ export default function LoginPage() {
                 isSignUp ? 'Create Account' : 'Sign In'
               )}
             </button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">OR</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              disabled={isGuestLoading}
+              className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {isGuestLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Starting Guest Session...
+                </div>
+              ) : (
+                <>Try as Guest</>
+              )}
+            </button>
+            <div className="text-center mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <p>Guest mode allows you to try all features without creating an account or storing any data.</p>
+            </div>
 
             <div className="text-center pt-4">
               <p className="text-gray-600 dark:text-gray-400">

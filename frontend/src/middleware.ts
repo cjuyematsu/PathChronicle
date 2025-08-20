@@ -3,15 +3,19 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const authToken = request.cookies.get('auth-token')?.value;
+  const guestToken = request.cookies.get('guest-session')?.value;
 
-  if (request.nextUrl.pathname.startsWith('/login')) {
-    if (authToken) {
+  const isAuthenticated = authToken || guestToken;
+  const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith('/login')) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();
   }
 
-  if (!authToken) {
+  if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

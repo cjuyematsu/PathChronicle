@@ -5,6 +5,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useAuth } from '@/src/context/AuthContext';
 import { GlobeLine, Star, RawTripData } from '@/src/types';
+import { apiWrapper } from '@/src/utils/apiWrapper';
 
 interface LoadingScreenProps {
   isLoading: boolean;
@@ -57,7 +58,7 @@ const TripInfo: React.FC<TripInfoProps> = ({ selectedTrip, onClose }) => {
           onClick={onClose}
           className="text-gray-500 hover:text-gray-700 text-xl leading-none"
         >
-          ×
+          X
         </button>
       </div>
       <div className="space-y-2 text-sm">
@@ -105,7 +106,7 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
   const [mapReady, setMapReady] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<GlobeLine | null>(null);
   const [trips, setTrips] = useState<GlobeLine[]>([]);
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -113,11 +114,10 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
         setIsLoading(true);
         try {
 
-          const response = await fetch(`/api/trips/user/${user.id}`);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch trips: ${response.statusText}`);
-          }
-          const rawData = await response.json();
+          const rawData = await apiWrapper.fetchTrips({
+                    isGuest: isGuest,
+                    userId: user.id
+          });
 
           // Format the data as before
           const formattedTrips: GlobeLine[] = rawData.map((trip: RawTripData) => ({
@@ -146,7 +146,7 @@ const GlobeTripVisualization: React.FC<GlobeTripVisualizationProps> = ({
         setIsLoading(false);
         setTrips([]);
     }
-  }, [user]); 
+  }, [user, isGuest]); 
 
   useEffect(() => {
     const canvas = starsCanvasRef.current;

@@ -156,7 +156,6 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                 userId: userId
             });
             
-            // Show success popup
             setSubmitStatus("success");
             setShowSuccessPopup(true);
             
@@ -350,8 +349,8 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                             
                             <div className="bg-slate-900/50 rounded-xl p-4 w-full mb-6">
                                 <p className="text-sm text-gray-300">
-                                    <span className="text-blue-400">Tip:</span> You can view, edit, or delete your trips anytime from the 
-                                    <span className="font-semibold text-white"> Manage Trips</span> page.
+                                    <span className="text-blue-400">Tip:</span> You can delete your trips anytime from the 
+                                    <span className="font-semibold text-white"> Remove Trips</span> page.
                                 </p>
                             </div>
                             
@@ -367,11 +366,11 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        router.push('/manage-trips');
+                                        router.push('/remove-trip');
                                     }}
                                     className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
                                 >
-                                    Manage Trips
+                                    Remove Trips
                                 </button>
                             </div>
                         </div>

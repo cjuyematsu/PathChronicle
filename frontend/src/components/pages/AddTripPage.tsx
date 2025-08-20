@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import { LocationSearchRowWithDisplay } from "@shared/types/location";
 import LocationSearch from "../locationSearch";
-import { TripFormData } from "@/src/types";
+import { TripFormData, CreateTripData } from "@/src/types";
+import { apiWrapper } from '@/src/utils/apiWrapper';
+import { useAuth } from '@/src/context/AuthContext';
 
 import { Calendar, Clock, MapPin, Plane, Train, Bus, Car, Ship, Save, 
     AlertCircle, CheckCircle } from "lucide-react";
@@ -23,6 +26,7 @@ interface TripFormProps {
 }
 
 const AddTripPage = ({ userId }: TripFormProps) => {
+    const router = useRouter();
     const [formData, setFormData] = useState<TripFormData>({
         name: "",
         trip_type: "flight",
@@ -41,14 +45,17 @@ const AddTripPage = ({ userId }: TripFormProps) => {
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
+    const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
     const [errors, setErrors] = useState<FormErrors>({});
     const [loading, setLoading] = useState<boolean>(true);
+
+    const { isGuest } = useAuth();
 
     useEffect(() => {
         setTimeout(() => {
             setLoading(false);
         }, 500);
-    });
+    }, []);
 
     const tripTypes: TripTypeOption[] = [
         { value: "flight", label: "Flight", icon: Plane },
@@ -106,7 +113,7 @@ const AddTripPage = ({ userId }: TripFormProps) => {
         setSubmitStatus(null);
 
         try {
-            const tripData = {
+            const tripData: CreateTripData = {
                 user_id: userId,
                 name: formData.name || `Trip to ${formData.destination_location?.name}`,
                 trip_type: formData.trip_type,
@@ -123,39 +130,65 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                 notes: formData.notes || null,
             };
 
-            const response = await fetch("/api/trips", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(tripData),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            // For guest mode, include location details
+            if (isGuest && formData.origin_location) {
+                tripData.origin_name = formData.origin_location.name;
+                tripData.origin_city = formData.origin_location.city || '';
+                tripData.origin_country = formData.origin_location.country_code || formData.origin_location.country || '';
+                tripData.origin_lat = formData.origin_location.latitude || 0;
+                tripData.origin_lon = formData.origin_location.longitude || 0;
+                
+                console.log('Origin coordinates:', tripData.origin_lat, tripData.origin_lon);
+            }
+            
+            if (isGuest && formData.destination_location) {
+                tripData.destination_name = formData.destination_location.name;
+                tripData.destination_city = formData.destination_location.city || '';
+                tripData.destination_country = formData.destination_location.country_code || formData.destination_location.country || '';
+                tripData.destination_lat = formData.destination_location.latitude || 0;
+                tripData.destination_lon = formData.destination_location.longitude || 0;
+                
+                console.log('Destination coordinates:', tripData.destination_lat, tripData.destination_lon);
             }
 
+            await apiWrapper.createTrip(tripData, {
+                isGuest: isGuest,
+                userId: userId
+            });
+            
+            // Show success popup
             setSubmitStatus("success");
+            setShowSuccessPopup(true);
+            
+            // Clear the form immediately
+            setFormData({
+                name: "",
+                trip_type: "flight",
+                origin_location: null,
+                destination_location: null,
+                departure_date: "",
+                arrival_date: "",
+                departure_time: "",
+                arrival_time: "",
+                flight_number: "",
+                train_number: "",
+                airline: "",
+                operator: "",
+                notes: "",
+            });
+            
+            // Hide the popup after 5 seconds
             setTimeout(() => {
-                setFormData({
-                    name: "",
-                    trip_type: "flight",
-                    origin_location: null,
-                    destination_location: null,
-                    departure_date: "",
-                    arrival_date: "",
-                    departure_time: "",
-                    arrival_time: "",
-                    flight_number: "",
-                    train_number: "",
-                    airline: "",
-                    operator: "",
-                    notes: "",
-                });
+                setShowSuccessPopup(false);
                 setSubmitStatus(null);
-            }, 3000);
+            }, 5000);
         } catch (error) {
             console.error("Error creating trip:", error);
             setSubmitStatus("error");
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                setSubmitStatus(null);
+            }, 5000);
         } finally {
             setIsSubmitting(false);
         }
@@ -201,6 +234,7 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                 return null;
         }
     };
+
     if (loading) {
         return (
             <div className="w-full h-full p-6 bg-slate-900 text-white">
@@ -296,18 +330,125 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                         {isSubmitting ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Creating Trip...</>) : (<><Save className="w-5 h-5" />Create Trip</>)}
                     </button>
                 </div>
-                {submitStatus === "success" && (
-                    <div className="mt-4 p-4 bg-green-900/20 border border-green-600 rounded-xl">
-                        <div className="flex items-center gap-2 text-green-400"><CheckCircle className="w-5 h-5" /><span className="font-medium">Trip created successfully!</span></div>
-                    </div>
-                )}
-                {submitStatus === "error" && (
-                    <div className="mt-4 p-4 bg-red-900/20 border border-red-600 rounded-xl">
-                        <div className="flex items-center gap-2 text-red-400"><AlertCircle className="w-5 h-5" /><span className="font-medium">Error creating trip. Please try again.</span></div>
-                    </div>
-                )}
             </div>
+
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+                    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all animate-slideUp">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-4 animate-scaleIn">
+                                <CheckCircle className="w-12 h-12 text-green-500" />
+                            </div>
+                            
+                            <h3 className="text-2xl font-bold text-white mb-2">
+                                Trip Added Successfully!
+                            </h3>
+                            <p className="text-gray-400 mb-6">
+                                Your trip has been saved to your collection.
+                            </p>
+                            
+                            <div className="bg-slate-900/50 rounded-xl p-4 w-full mb-6">
+                                <p className="text-sm text-gray-300">
+                                    <span className="text-blue-400">Tip:</span> You can view, edit, or delete your trips anytime from the 
+                                    <span className="font-semibold text-white"> Manage Trips</span> page.
+                                </p>
+                            </div>
+                            
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => {
+                                        setShowSuccessPopup(false);
+                                        setSubmitStatus(null);
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors font-medium"
+                                >
+                                    Add Another Trip
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        router.push('/manage-trips');
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                                >
+                                    Manage Trips
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Notification */}
+            {submitStatus === "error" && !showSuccessPopup && (
+                <div className="fixed bottom-8 right-8 max-w-md animate-slideInRight z-50">
+                    <div className="bg-red-900/90 backdrop-blur border border-red-600 rounded-xl p-4 shadow-xl">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-medium text-red-400">Failed to create trip</p>
+                                <p className="text-sm text-red-300/80 mt-1">
+                                    Please check your connection and try again.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes slideUp {
+                    from { 
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to { 
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @keyframes slideInRight {
+                    from { 
+                        opacity: 0;
+                        transform: translateX(100%);
+                    }
+                    to { 
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                
+                @keyframes scaleIn {
+                    from { 
+                        transform: scale(0);
+                    }
+                    to { 
+                        transform: scale(1);
+                    }
+                }
+                
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out;
+                }
+                
+                .animate-slideUp {
+                    animation: slideUp 0.3s ease-out;
+                }
+                
+                .animate-slideInRight {
+                    animation: slideInRight 0.3s ease-out;
+                }
+                
+                .animate-scaleIn {
+                    animation: scaleIn 0.3s ease-out;
+                }
+                
                 .trip-form-location-search :global(.border-gray-300) { border-color: rgb(75 85 99); }
                 .trip-form-location-search :global(.bg-white) { background-color: rgb(31 41 55); }
                 .trip-form-location-search :global(.text-gray-900) { color: rgb(243 244 246); }

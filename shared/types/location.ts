@@ -4,9 +4,12 @@ export interface LocationSearchRow {
     name: string;
     city: string;
     country: string;
+    country_code?: string;
     airport_code?: string | null;
     station_code?: string | null;
     location_type: LocationType;
+    latitude?: number;       
+    longitude?: number;  
 }
 
 // Location type enum for better type safety
@@ -24,4 +27,6 @@ export type TripType = "flight" | "train" | "bus" | "car" | "ferry" | "other";
 export interface LocationSearchRowWithDisplay extends LocationSearchRow {
     display: string;
     code?: string | null;
+    latitude?: number;
+    longitude?: number;
 }

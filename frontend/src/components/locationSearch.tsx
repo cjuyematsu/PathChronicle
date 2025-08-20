@@ -60,7 +60,9 @@ const LocationSearch = ({
                 lang: userLang 
             });
 
-            const response = await fetch(`/api/locations/search?${params}`);
+            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const response = await fetch(`${backendUrl}/api/locations/search?${params}`);
+            
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data: ApiLocationResult[] = await response.json();
             
@@ -89,7 +91,8 @@ const LocationSearch = ({
             return saveQueueRef.current.get(queueKey)!;
         }
 
-        const savePromise = fetch("/api/locations/save", {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const savePromise = fetch(`${backendUrl}/api/locations/save`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -151,24 +154,28 @@ const LocationSearch = ({
         setQuery(display);
         setIsLocationSelected(true);
 
-        const tempLocation: LocationSearchRowWithDisplay = {
+        const tempLocation: LocationSearchRowWithDisplay & { latitude?: number; longitude?: number } = {
             id: location.id ? String(location.id) : `temp_${location.osm_id || Date.now()}`,
             display: display,
             name: location.name,
             city: location.city,
             country: location.country,
+            country_code: location.country_code,  
             location_type: location.location_type,
+            latitude: location.latitude, 
+            longitude: location.longitude,
         };
         
         onLocationSelect(tempLocation);
 
-        // Save to database asynchronously without blocking
         if (!location.from_db) {
             saveLocationToDatabase(location).then(savedLocation => {
                 if (savedLocation.id) {
-                    const finalLocation: LocationSearchRowWithDisplay = {
+                    const finalLocation: LocationSearchRowWithDisplay & { latitude?: number; longitude?: number } = {
                         ...tempLocation,
                         id: String(savedLocation.id),
+                        latitude: savedLocation.latitude,
+                        longitude: savedLocation.longitude,
                     };
                     onLocationSelect(finalLocation);
                 }

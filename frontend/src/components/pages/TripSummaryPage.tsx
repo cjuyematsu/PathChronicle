@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapPin, Plane, Train, Bus, Car, Ship, MoreHorizontal, Clock, Globe, TrendingUp, AlertTriangle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { ManageTripType, TripApiResponse } from '@/src/types';
+import { ManageTripType, TripApiResponse, GuestTrip } from '@/src/types';
 import { useAuth } from '../../context/AuthContext';
+import { apiWrapper } from '@/src/utils/apiWrapper';
 
 const Card = ({ children, className = "" }: { 
   children: React.ReactNode; 
@@ -71,7 +72,7 @@ const getTripIcon = (tripType: string) => {
 };
 
 const SummaryPage = () => {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [trips, setTrips] = useState<ManageTripType[]>([]);
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [selectedYear, setSelectedYear] = useState('all');
@@ -79,89 +80,123 @@ const SummaryPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [visitedCountries, setVisitedCountries] = useState<string[]>([]);
 
+  const fetchData = useCallback(async () => {
+    if (!user?.id) return;
+    
+    console.log('Summary - Fetching data for user:', user.id, 'isGuest:', isGuest);
+    
+    try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch trips using apiWrapper
+        const tripsData = await apiWrapper.fetchTrips({
+            isGuest: isGuest,
+            userId: user.id
+        });
+        
+        console.log('Summary - Received trips:', tripsData);
+        
+        // Transform backend response to match frontend type
+        // Handle both guest and regular trip formats
+        const formattedTrips: ManageTripType[] = tripsData.map((trip: TripApiResponse | GuestTrip) => {
+            // For guest trips, the structure is already flat
+            if (isGuest) {
+                return {
+                    id: trip.id,
+                    user_id: trip.user_id,
+                    name: trip.name,
+                    trip_type: trip.trip_type,
+                    origin_location_id: trip.origin_location_id,
+                    destination_location_id: trip.destination_location_id,
+                    departure_date: trip.departure_date,
+                    arrival_date: trip.arrival_date,
+                    departure_time: trip.departure_time,
+                    arrival_time: trip.arrival_time,
+                    flight_number: trip.flight_number,
+                    train_number: trip.train_number,
+                    airline: trip.airline,
+                    operator: trip.operator,
+                    distance_km: parseFloat(trip.distance_km || '0'),
+                    duration_minutes: trip.duration_minutes || 0,
+                    notes: trip.notes,
+                    created_at: trip.created_at,
+                    updated_at: trip.updated_at,
+                    origin_location: {
+                        id: trip.origin_location_id,
+                        name: trip.origin_name || 'Unknown',
+                        city: trip.origin_city || '',
+                        country_code: trip.origin_country || '',
+                    },
+                    destination_location: {
+                        id: trip.destination_location_id,
+                        name: trip.destination_name || 'Unknown',
+                        city: trip.destination_city || '',
+                        country_code: trip.destination_country || '',
+                    },
+                };
+            } else {
+                // For regular trips from the API
+                return {
+                    id: trip.id,
+                    user_id: trip.user_id,
+                    name: trip.name,
+                    trip_type: trip.trip_type,
+                    origin_location_id: trip.origin_location_id,
+                    destination_location_id: trip.destination_location_id,
+                    departure_date: trip.departure_date,
+                    arrival_date: trip.arrival_date,
+                    departure_time: trip.departure_time,
+                    arrival_time: trip.arrival_time,
+                    flight_number: trip.flight_number,
+                    train_number: trip.train_number,
+                    airline: trip.airline,
+                    operator: trip.operator,
+                    distance_km: parseFloat(trip.distance_km),
+                    duration_minutes: trip.duration_minutes,
+                    notes: trip.notes,
+                    created_at: trip.created_at,
+                    updated_at: trip.updated_at,
+                    origin_location: {
+                        id: trip.origin_location_id,
+                        name: trip.origin_name,
+                        city: trip.origin_city,
+                        country_code: trip.origin_country,
+                    },
+                    destination_location: {
+                        id: trip.destination_location_id,
+                        name: trip.destination_name,
+                        city: trip.destination_city,
+                        country_code: trip.destination_country,
+                    },
+                };
+            }
+        });
+        
+        // Fetch visited countries using apiWrapper
+        const countries = await apiWrapper.getVisitedCountries({
+            isGuest: isGuest,
+            userId: user.id
+        });
+        
+        console.log('Summary - Formatted trips:', formattedTrips);
+        console.log('Summary - Visited countries:', countries);
+        
+        setTrips(formattedTrips);
+        setVisitedCountries(countries);
+    } catch (err) {
+        console.error('Summary - Error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+    } finally {
+        setLoading(false);
+    }
+  }, [user, isGuest]);
+
   useEffect(() => {
     if (user?.id) {
       fetchData();
     }
-  }, [user]);
-
-  const fetchData = async () => {
-    if (!user?.id) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch trips
-      const tripsResponse = await fetch(`/api/trips/user/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
-        }
-      });
-
-      if (!tripsResponse.ok) {
-        throw new Error('Failed to fetch trips');
-      }
-
-      const tripsData = await tripsResponse.json();
-      
-      // Transform backend response to match frontend type
-      const formattedTrips: ManageTripType[] = tripsData.map((trip: TripApiResponse) => ({
-        id: trip.id,
-        user_id: trip.user_id,
-        name: trip.name,
-        trip_type: trip.trip_type,
-        origin_location_id: trip.origin_location_id,
-        destination_location_id: trip.destination_location_id,
-        departure_date: trip.departure_date,
-        arrival_date: trip.arrival_date,
-        departure_time: trip.departure_time,
-        arrival_time: trip.arrival_time,
-        flight_number: trip.flight_number,
-        train_number: trip.train_number,
-        airline: trip.airline,
-        operator: trip.operator,
-        distance_km: parseFloat(trip.distance_km),
-        duration_minutes: trip.duration_minutes,
-        notes: trip.notes,
-        created_at: trip.created_at,
-        updated_at: trip.updated_at,
-        origin_location: {
-          id: trip.origin_location_id,
-          name: trip.origin_name,
-          city: trip.origin_city,
-          country_code: trip.origin_country,
-        },
-        destination_location: {
-          id: trip.destination_location_id,
-          name: trip.destination_name,
-          city: trip.destination_city,
-          country_code: trip.destination_country,
-        },
-      }));
-      
-      // Fetch visited countries
-      const countriesResponse = await fetch(`/api/trips/countries/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
-        }
-      });
-
-      if (!countriesResponse.ok) {
-        throw new Error('Failed to fetch visited countries');
-      }
-
-      const countries = await countriesResponse.json();
-      
-      setTrips(formattedTrips);
-      setVisitedCountries(countries);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
-      console.error('Error fetching data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, fetchData]);
 
   if (!user) {
     return (

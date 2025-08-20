@@ -5,6 +5,8 @@ import { MapPin, Plane, ChevronDown, ChevronUp, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { countries, getCountryName } from '../../data/countries';
 import 'flag-icons/css/flag-icons.min.css';
+import { apiWrapper } from '@/src/utils/apiWrapper';
+
 
 interface CountryVisit {
   code: string;
@@ -86,7 +88,7 @@ const PassportStamp = ({ country, isVisited }: { country: CountryVisit; isVisite
 };
 
 const PassportPage = () => {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [visitedCountries, setVisitedCountries] = useState<string[]>([]);
   const [countryVisits, setCountryVisits] = useState<CountryVisit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,39 +99,39 @@ const PassportPage = () => {
   const fetchVisitedCountries = useCallback(async () => {
     if (!user?.id) return;
 
+    console.log('Passport - Fetching countries for user:', user.id, 'isGuest:', isGuest);
+
     try {
-      setLoading(true);
-      setError(null);
+        setLoading(true);
+        setError(null);
 
-      const response = await fetch(`/api/trips/countries/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('auth-token=')[1]?.split(';')[0] || ''}`
-        }
-      });
+        // Use apiWrapper to get visited countries
+        const countryCodes = await apiWrapper.getVisitedCountries({
+            isGuest: isGuest,
+            userId: user.id
+        });
+        
+        console.log('Passport - Received country codes:', countryCodes);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch visited countries');
-      }
+        // Normalize the country codes
+        const normalizedCodes = countryCodes.map((code: string) => code.toLowerCase());
+        setVisitedCountries(normalizedCodes);
 
-      const countryCodes = await response.json();
+        // Create country visit objects
+        const visits = normalizedCodes.map((code: string) => ({
+            code: code,
+            name: getCountryName(code)
+        }));
 
-      const normalizedCodes = countryCodes.map((code: string) => code.toLowerCase());
-      setVisitedCountries(normalizedCodes);
-
-      const visits = normalizedCodes.map((code: string) => ({
-        code: code,
-        name: getCountryName(code)
-      }));
-
-      setCountryVisits(visits);
+        setCountryVisits(visits);
+        console.log('Passport - Country visits:', visits);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
-      console.error('Error fetching visited countries:', err);
+        console.error('Passport - Error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  }, [user?.id]);
-
+}, [user?.id, isGuest]);
   useEffect(() => {
     if (user?.id) {
       fetchVisitedCountries();
@@ -176,11 +178,9 @@ const PassportPage = () => {
 
   if (loading) {
     return (
-      <div className="w-full min-h-screen p-6 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
+      <div className="w-full h-full p-6 bg-slate-900 text-white">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       </div>
     );

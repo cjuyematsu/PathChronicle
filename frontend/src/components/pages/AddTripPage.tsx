@@ -366,11 +366,11 @@ const AddTripPage = ({ userId }: TripFormProps) => {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        router.push('/remove-trip');
+                                        router.push('/');
                                     }}
                                     className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
                                 >
-                                    Remove Trips
+                                    View Globe
                                 </button>
                             </div>
                         </div>

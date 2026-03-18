@@ -14,7 +14,7 @@ app.use(
             "http://localhost:3000",
             "https://localhost:3001",
             "https://path-chronicle.vercel.app",
-            "https://*.vercel.app",
+            /^https:\/\/.*\.vercel\.app$/,
             "https://trekt.app",
             "https://www.trekt.app",
         ],
